@@ -8,7 +8,8 @@ window.APP_CONFIG = {
     owner: "FinnCheung93",
     repo: "Camera-Encyclopedia",
     token: "",
-    branch: "gh-pages",
+    /** 与 GitHub Pages 使用的分支一致：常见为 main 或 master */
+    branch: "main",
     dataPath: "data.json",
   },
   useLocalDataJson: false,

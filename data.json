@@ -6,9 +6,9 @@
     "defaultView": "card",
     "password": "admin123",
     "githubConfig": {
-      "owner": "YOUR_GITHUB_USERNAME",
-      "repo": "YOUR_REPO_NAME",
-      "branch": "gh-pages"
+      "owner": "FinnCheung93",
+      "repo": "Camera-Encyclopedia",
+      "branch": "main"
     }
   },
   "categoryConfig": [
