@@ -15,6 +15,10 @@
           <strong>Secret scanning</strong> 并被拦截。请只在下面粘贴一次，保存后 Token 仅存在于<strong>当前浏览器本机</strong>（localStorage）。
         </p>
         <p class="muted">仓库、分支仍由 <code>config.js</code> 中的 owner / repo / branch 决定；此处只负责 Token。</p>
+        <p class="muted">
+          <strong>给别人看前台</strong>：把 GitHub 仓库设为 <strong>Public</strong> 即可，对方<strong>不用</strong>配置 Token。
+          只有你要用「后台」改数据并写回 GitHub 时，才需要在本页保存 PAT。
+        </p>
         <div class="form-field" style="margin-top:16px;">
           <label for="token">Fine-grained PAT（或 Classic PAT）</label>
           <input class="input" type="password" id="token" autocomplete="off" style="max-width:none" placeholder="ghp_… 或 github_pat_…" />

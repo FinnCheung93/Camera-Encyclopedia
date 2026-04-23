@@ -1,7 +1,8 @@
 /**
  * 仓库与分支（可安全提交到 GitHub）。
- * Token：不要写在本文件里上传！请打开「setup-token.html」粘贴 PAT，会保存在本机浏览器。
- * 本地调试：可将 useLocalDataJson 设为 true，仅从同目录 data.json 读取。
+ * 前台只读：仓库为 Public 时，访客无需 Token 即可加载 data.json（GitHub 匿名 API 有频率限制）。
+ * Token：不要写进仓库文件。需要后台保存时，用「setup-token.html」把 PAT 存本机浏览器。
+ * 本地调试：useLocalDataJson 为 true 时只读 ./data.json。
  */
 window.APP_CONFIG = {
   github: {
