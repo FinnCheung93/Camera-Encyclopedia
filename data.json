@@ -1,0 +1,163 @@
+{
+  "siteConfig": {
+    "siteTitle": "个人相机收藏图鉴",
+    "siteDesc": "胶片与数码小收藏，仅供个人与朋友查阅。",
+    "author": "收藏者署名（后台可改）",
+    "defaultView": "card",
+    "password": "admin123",
+    "githubConfig": {
+      "owner": "YOUR_GITHUB_USERNAME",
+      "repo": "YOUR_REPO_NAME",
+      "branch": "gh-pages"
+    }
+  },
+  "categoryConfig": [
+    {
+      "categoryId": "film-ps",
+      "categoryName": "胶片PS相机",
+      "sort": 1,
+      "status": "enable",
+      "secondCategory": ["可换镜头", "不可换镜头", "PS机"],
+      "fieldConfig": [
+        {
+          "fieldId": "brand",
+          "fieldName": "品牌",
+          "fieldType": "text",
+          "required": true,
+          "isFilter": true
+        },
+        {
+          "fieldId": "model",
+          "fieldName": "机型全称",
+          "fieldType": "text",
+          "required": true,
+          "isFilter": true
+        },
+        {
+          "fieldId": "year",
+          "fieldName": "发布年份",
+          "fieldType": "number",
+          "required": true,
+          "isFilter": true
+        },
+        {
+          "fieldId": "secondCategory",
+          "fieldName": "二级品类",
+          "fieldType": "select",
+          "options": ["可换镜头", "不可换镜头", "PS机"],
+          "required": true,
+          "isFilter": true
+        },
+        {
+          "fieldId": "image",
+          "fieldName": "机型图片URL",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "remark",
+          "fieldName": "个人备注",
+          "fieldType": "textarea",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "sensorFormat",
+          "fieldName": "画幅",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": true
+        },
+        {
+          "fieldId": "lens",
+          "fieldName": "镜头",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": true
+        }
+      ]
+    },
+    {
+      "categoryId": "ccd",
+      "categoryName": "CCD相机",
+      "sort": 2,
+      "status": "enable",
+      "secondCategory": ["卡片机", "长焦机", "可换镜头"],
+      "fieldConfig": [
+        {
+          "fieldId": "brand",
+          "fieldName": "品牌",
+          "fieldType": "text",
+          "required": true,
+          "isFilter": true
+        },
+        {
+          "fieldId": "model",
+          "fieldName": "机型全称",
+          "fieldType": "text",
+          "required": true,
+          "isFilter": true
+        },
+        {
+          "fieldId": "year",
+          "fieldName": "发布年份",
+          "fieldType": "number",
+          "required": true,
+          "isFilter": true
+        },
+        {
+          "fieldId": "secondCategory",
+          "fieldName": "二级品类",
+          "fieldType": "select",
+          "options": ["卡片机", "长焦机", "可换镜头"],
+          "required": true,
+          "isFilter": true
+        },
+        {
+          "fieldId": "image",
+          "fieldName": "机型图片URL",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "remark",
+          "fieldName": "个人备注",
+          "fieldType": "textarea",
+          "required": false,
+          "isFilter": false
+        }
+      ]
+    }
+  ],
+  "cameraData": [
+    {
+      "id": 1,
+      "categoryId": "film-ps",
+      "brand": "三星",
+      "model": "Vega 140",
+      "year": 1998,
+      "secondCategory": "不可换镜头",
+      "image": "",
+      "remark": "施耐德变焦，旅行随手拍。",
+      "specs": {
+        "sensorFormat": "135",
+        "lens": "38-140mm 施耐德变焦"
+      },
+      "updateTime": "2024-04-23"
+    },
+    {
+      "id": 2,
+      "categoryId": "ccd",
+      "brand": "佳能",
+      "model": "IXUS 400",
+      "year": 2003,
+      "secondCategory": "卡片机",
+      "image": "",
+      "remark": "早期小方块CCD。",
+      "specs": {},
+      "updateTime": "2024-04-22"
+    }
+  ]
+}

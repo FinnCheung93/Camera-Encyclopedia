@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>后台登录 · 个人相机收藏图鉴</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container" style="max-width:520px">
+      <div class="panel">
+        <h1 style="margin-top:0;font-size:20px;">后台登录</h1>
+        <p class="muted">密码来自 data.json 的 siteConfig.password；登录状态使用 sessionStorage，关闭浏览器后失效。</p>
+        <div class="form-field" style="margin-top:16px;">
+          <label for="pwd">密码</label>
+          <input class="input" type="password" id="pwd" autocomplete="current-password" style="max-width:none" />
+        </div>
+        <div class="row" style="margin-top:14px;">
+          <button class="btn btn-primary" type="button" id="btnLogin">登录</button>
+          <a class="btn btn-ghost" href="index.html">返回首页</a>
+        </div>
+        <p class="muted" id="hint" style="margin-top:12px;"></p>
+      </div>
+    </main>
+    <script src="config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/github-storage.js"></script>
+    <script src="js/admin-login.js"></script>
+  </body>
+</html>
