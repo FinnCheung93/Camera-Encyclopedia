@@ -3,7 +3,7 @@
     "siteTitle": "个人相机收藏图鉴",
     "siteDesc": "胶片与数码小收藏，仅供个人与朋友查阅。",
     "author": "收藏者署名（后台可改）",
-    "defaultView": "card",
+    "defaultView": "table",
     "password": "admin123",
     "githubConfig": {
       "owner": "FinnCheung93",
@@ -17,7 +17,11 @@
       "categoryName": "胶片PS相机",
       "sort": 1,
       "status": "enable",
-      "secondCategory": ["可换镜头", "不可换镜头", "PS机"],
+      "secondCategory": [
+        "可换镜头",
+        "不可换镜头",
+        "PS机"
+      ],
       "fieldConfig": [
         {
           "fieldId": "brand",
@@ -44,7 +48,11 @@
           "fieldId": "secondCategory",
           "fieldName": "二级品类",
           "fieldType": "select",
-          "options": ["可换镜头", "不可换镜头", "PS机"],
+          "options": [
+            "可换镜头",
+            "不可换镜头",
+            "PS机"
+          ],
           "required": true,
           "isFilter": true
         },
@@ -83,7 +91,11 @@
       "categoryName": "CCD相机",
       "sort": 2,
       "status": "enable",
-      "secondCategory": ["卡片机", "长焦机", "可换镜头"],
+      "secondCategory": [
+        "卡片机",
+        "长焦机",
+        "可换镜头"
+      ],
       "fieldConfig": [
         {
           "fieldId": "brand",
@@ -110,7 +122,11 @@
           "fieldId": "secondCategory",
           "fieldName": "二级品类",
           "fieldType": "select",
-          "options": ["卡片机", "长焦机", "可换镜头"],
+          "options": [
+            "卡片机",
+            "长焦机",
+            "可换镜头"
+          ],
           "required": true,
           "isFilter": true
         },
