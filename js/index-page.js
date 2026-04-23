@@ -184,7 +184,10 @@
     try {
       siteTime = new Date(document.lastModified).toISOString().slice(0, 10);
     } catch (e) {}
-    footer.textContent = "网站文件更新时间：" + siteTime;
+    footer.innerHTML =
+      "网站文件更新时间：" +
+      AppUtils.escapeHtml(siteTime) +
+      ' · <a href="setup-token.html">GitHub PAT 本机设置</a>（勿把 Token 写进仓库文件）';
   }
 
   async function boot() {

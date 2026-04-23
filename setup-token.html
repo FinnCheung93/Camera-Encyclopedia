@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PAT 设置（仅保存在本机浏览器）</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="container" style="max-width:560px">
+      <div class="panel">
+        <h1 style="margin-top:0;font-size:20px;">GitHub Token 本机设置</h1>
+        <p class="muted">
+          不要把 Personal Access Token 写进 <code>index.html</code>、<code>config.js</code> 等<strong>会上传到 GitHub 的文件</strong>，否则会触发
+          <strong>Secret scanning</strong> 并被拦截。请只在下面粘贴一次，保存后 Token 仅存在于<strong>当前浏览器本机</strong>（localStorage）。
+        </p>
+        <p class="muted">仓库、分支仍由 <code>config.js</code> 中的 owner / repo / branch 决定；此处只负责 Token。</p>
+        <div class="form-field" style="margin-top:16px;">
+          <label for="token">Fine-grained PAT（或 Classic PAT）</label>
+          <input class="input" type="password" id="token" autocomplete="off" style="max-width:none" placeholder="ghp_… 或 github_pat_…" />
+        </div>
+        <div class="row" style="margin-top:14px;">
+          <button class="btn btn-primary" type="button" id="btnSave">保存到本机浏览器</button>
+          <button class="btn" type="button" id="btnClear">清除本机 Token</button>
+          <a class="btn btn-ghost" href="index.html">返回首页</a>
+        </div>
+        <p id="ok" class="muted" style="margin-top:14px;"></p>
+      </div>
+    </main>
+    <script src="js/setup-token.js"></script>
+  </body>
+</html>

@@ -439,7 +439,11 @@
     paint();
 
     try {
-      footer.textContent = "网站文件更新时间：" + new Date(document.lastModified).toISOString().slice(0, 10);
+      var siteTime = new Date(document.lastModified).toISOString().slice(0, 10);
+      footer.innerHTML =
+        "网站文件更新时间：" +
+        AppUtils.escapeHtml(siteTime) +
+        ' · <a href="setup-token.html">PAT 本机设置</a>';
     } catch (e) {
       footer.textContent = "";
     }

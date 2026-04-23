@@ -4,23 +4,41 @@
 (function (global) {
   var shaCache = null;
 
+  var LS_TOKEN_KEY = "CAM_GITHUB_PAT";
+
+  function tokenFromLocalStorage() {
+    try {
+      return (localStorage.getItem(LS_TOKEN_KEY) || "").replace(/\s+/g, "").trim();
+    } catch (e) {
+      return "";
+    }
+  }
+
   function cfg() {
     var c = global.APP_CONFIG || {};
     var g = c.github || {};
+    var raw = g.token == null ? "" : String(g.token);
+    var fromFile = raw.replace(/\s+/g, "").trim();
+    if (fromFile === "YOUR_GITHUB_PAT") fromFile = "";
+    var fromLs = tokenFromLocalStorage();
     return {
-      owner: g.owner,
-      repo: g.repo,
-      token: g.token,
-      branch: g.branch || "gh-pages",
-      dataPath: g.dataPath || "data.json",
+      owner: (g.owner && String(g.owner).trim()) || "",
+      repo: (g.repo && String(g.repo).trim()) || "",
+      /** 优先本机 localStorage（避免把 PAT 写进仓库触发 Secret scanning） */
+      token: fromLs || fromFile,
+      branch: (g.branch && String(g.branch).trim()) || "gh-pages",
+      dataPath: (g.dataPath && String(g.dataPath).trim()) || "data.json",
       useLocal: !!c.useLocalDataJson,
     };
   }
 
   function authHeaders() {
     var token = cfg().token;
-    var h = { Accept: "application/vnd.github+json" };
-    if (token && token !== "YOUR_GITHUB_PAT") h.Authorization = "Bearer " + token;
+    var h = {
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
+    if (token) h.Authorization = "Bearer " + token;
     return h;
   }
 
@@ -52,8 +70,10 @@
       shaCache = null;
       return await res.json();
     }
-    if (!g.owner || !g.repo || !g.token || g.token === "YOUR_GITHUB_PAT") {
-      throw new Error("请在 config.js 填写 github.owner / repo / token，或开启 useLocalDataJson");
+    if (!g.owner || !g.repo || !g.token) {
+      throw new Error(
+        "缺少有效 Token：请打开「setup-token.html」把 PAT 保存到本机浏览器，或在 config.js 填写 github.token（勿提交真实 Token 到公开仓库）。也可将 useLocalDataJson 设为 true 做离线预览。"
+      );
     }
     var url =
       apiUrl("contents/" + encodeURIComponent(g.dataPath)) + "?ref=" + encodeURIComponent(g.branch);
@@ -64,6 +84,10 @@
       try {
         errMsg = JSON.parse(text).message || text;
       } catch (e) {}
+      if (res.status === 401) {
+        errMsg +=
+          "（Token 无效/已撤销/已过期，或 Fine-grained 未勾选本仓库与 Contents 读权限；请检查 config.js 的 github.token，勿带空格/引号）";
+      }
       throw new Error("读取仓库失败：" + errMsg);
     }
     var meta = JSON.parse(text);
@@ -78,8 +102,8 @@
     if (g.useLocal) {
       throw new Error("当前为本地预览模式（useLocalDataJson=true），不会写入 GitHub。请改为 false 并部署后使用后台保存。");
     }
-    if (!g.owner || !g.repo || !g.token || g.token === "YOUR_GITHUB_PAT") {
-      throw new Error("保存前请在 config.js 填写有效的 github.token");
+    if (!g.owner || !g.repo || !g.token) {
+      throw new Error("保存前请在 setup-token.html 写入 PAT，或在 config.js 填写 github.token（勿提交到公开仓库）。");
     }
     var url = apiUrl("contents/" + encodeURIComponent(g.dataPath));
     var body = {

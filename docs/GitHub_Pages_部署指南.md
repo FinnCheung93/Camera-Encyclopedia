@@ -32,12 +32,16 @@ npx --yes http-server . -p 5173
 
 然后访问 `http://127.0.0.1:5173/`，并确保 `config.js` 中 `useLocalDataJson: true`。
 
-## 4. 修改配置文件
+## 4. 修改配置文件（不要把 PAT 提交进仓库）
 
-1. 打开本目录下的 `config.js`。
-2. 填写 `github.owner`（用户名）、`github.repo`（仓库名）、`github.token`（上一步 PAT）。
-3. 将 `useLocalDataJson` 改为 **`false`**（上线后必须通过 GitHub API 读写 `data.json`）。
-4. 可选：把 `data.json` 里的 `siteConfig.githubConfig` 同步为相同 owner/repo/branch，便于备份文件自描述。
+GitHub **Secret scanning** 会拦截包含 `ghp_` / `github_pat_` 等 Token 的文件上传；**不要把 PAT 写进 `index.html`、`config.js` 等会进仓库的文件**。
+
+1. 打开 `config.js`，只填写 **`github.owner` / `github.repo` / `github.branch`**，`github.token` 保持空字符串 `""`。
+2. 将网站部署上线后，用浏览器打开站点上的 **`setup-token.html`**，把 PAT **保存到本机浏览器**（localStorage）。换电脑或清除站点数据后需重新保存一次。
+3. 将 `useLocalDataJson` 改为 **`false`**（上线后通过 GitHub API 读写 `data.json`）。
+4. 可选：把 `data.json` 里的 `siteConfig.githubConfig` 同步为相同 owner/repo/branch。
+
+> 仅个人使用、且仓库为 **Private** 时，若你仍想把 Token 写在 `config.js` 里，也可能被 Secret scanning 拦截；**推荐始终使用 `setup-token.html`**。
 
 ## 5. 上传网站文件到仓库
 
