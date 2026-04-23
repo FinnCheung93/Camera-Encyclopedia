@@ -32,14 +32,20 @@
     };
   }
 
-  function authHeaders() {
-    var token = cfg().token;
+  function apiHeaders(withToken) {
     var h = {
       Accept: "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
     };
-    if (token) h.Authorization = "Bearer " + token;
+    if (withToken) {
+      var token = cfg().token;
+      if (token) h.Authorization = "Bearer " + token;
+    }
     return h;
+  }
+
+  function authHeaders() {
+    return apiHeaders(true);
   }
 
   function utf8ToBase64(str) {
@@ -62,6 +68,15 @@
     );
   }
 
+  async function loadContentsOnce(useToken) {
+    var g = cfg();
+    var url =
+      apiUrl("contents/" + encodeURIComponent(g.dataPath)) + "?ref=" + encodeURIComponent(g.branch);
+    var res = await fetch(url, { headers: apiHeaders(!!useToken) });
+    var text = await res.text();
+    return { res: res, text: text };
+  }
+
   async function loadJson() {
     var g = cfg();
     if (g.useLocal) {
@@ -70,15 +85,22 @@
       shaCache = null;
       return await res.json();
     }
-    if (!g.owner || !g.repo || !g.token) {
-      throw new Error(
-        "缺少有效 Token：请打开「setup-token.html」把 PAT 保存到本机浏览器，或在 config.js 填写 github.token（勿提交真实 Token 到公开仓库）。也可将 useLocalDataJson 设为 true 做离线预览。"
-      );
+    if (!g.owner || !g.repo) {
+      throw new Error("请在 config.js 填写 github.owner 与 github.repo。");
     }
-    var url =
-      apiUrl("contents/" + encodeURIComponent(g.dataPath)) + "?ref=" + encodeURIComponent(g.branch);
-    var res = await fetch(url, { headers: authHeaders() });
-    var text = await res.text();
+
+    /**
+     * 公开仓库：GitHub Contents API 允许匿名读取（有频率限制），访客浏览前台无需 Token。
+     * 私有仓库：匿名会 404，需带 PAT；后台保存始终需要 PAT。
+     */
+    var first = await loadContentsOnce(false);
+    var res = first.res;
+    var text = first.text;
+    if (!res.ok && g.token) {
+      var second = await loadContentsOnce(true);
+      res = second.res;
+      text = second.text;
+    }
     if (!res.ok) {
       var errMsg = text;
       try {
@@ -86,7 +108,11 @@
       } catch (e) {}
       if (res.status === 401) {
         errMsg +=
-          "（Token 无效/已撤销/已过期，或 Fine-grained 未勾选本仓库与 Contents 读权限；请检查 config.js 的 github.token，勿带空格/引号）";
+          "（Token 无效/已撤销/已过期，或 Fine-grained 未勾选本仓库与 Contents 读权限；请用 setup-token 检查 PAT）";
+      }
+      if ((res.status === 404 || res.status === 403) && !g.token) {
+        errMsg +=
+          " 若为私有仓库，匿名无法读取 data.json：请把仓库改为 Public，或在 setup-token.html 配置 PAT（仅你自己浏览器需要，访客仍无法在无 Token 下读私有库）。";
       }
       throw new Error("读取仓库失败：" + errMsg);
     }
