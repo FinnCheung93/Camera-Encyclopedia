@@ -105,7 +105,7 @@
 
   function renderCard(cam, cat) {
     var img = cam.image
-      ? '<img class="card-img" loading="lazy" src="' + AppUtils.escapeHtml(cam.image) + '" alt="" />'
+      ? '<img class="card-img" loading="lazy" decoding="async" src="' + AppUtils.escapeHtml(cam.image) + '" alt="" />'
       : '<div class="card-img"></div>';
     return (
       '<article class="card" style="cursor:default;">' +

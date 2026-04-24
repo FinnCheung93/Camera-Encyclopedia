@@ -22,6 +22,9 @@ body {
   color: var(--text);
   background: var(--bg);
   line-height: 1.5;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* 首页：单屏视口，避免主滚动条（内容仍可在极矮屏内略压缩） */
@@ -47,6 +50,124 @@ a {
 img {
   max-width: 100%;
   display: block;
+}
+
+/* 全站：默认不出现文本 I 形光标与误选；表单、表格、代码块仍可选择与编辑（规则写在 html,body） */
+
+input,
+textarea,
+select,
+.input,
+.textarea,
+.select,
+[contenteditable="true"],
+.data-table,
+.data-table th,
+.data-table td,
+code,
+pre,
+kbd,
+.empty {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.data-table th,
+.data-table td {
+  cursor: text;
+}
+
+a[href],
+button,
+.btn,
+.chip,
+.card[data-href],
+.category-tile,
+label,
+.site-header a,
+.admin-nav button {
+  cursor: pointer;
+}
+
+/* 首屏加载占位：轻量 spinner + 跳点（各页 #app / #adminPanel 初始内容） */
+.app-boot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 40px 20px;
+  min-height: 200px;
+  box-sizing: border-box;
+}
+
+.container--home > .app-boot {
+  flex: 1;
+  min-height: 0;
+  padding: 24px 16px;
+}
+
+.app-boot--panel {
+  min-height: 220px;
+  padding: 32px 20px;
+}
+
+.app-boot-spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2.5px solid #e2e8f0;
+  border-top-color: var(--accent);
+  animation: app-boot-spin 0.7s linear infinite;
+}
+
+@keyframes app-boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app-boot-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.app-boot-dots {
+  display: inline-flex;
+  gap: 5px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.app-boot-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0.35;
+  animation: app-boot-dot 1s ease-in-out infinite;
+}
+
+.app-boot-dots span:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.app-boot-dots span:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes app-boot-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
 }
 
 .site-header {
