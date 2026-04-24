@@ -112,6 +112,13 @@
           "fieldType": "text",
           "required": false,
           "isFilter": false
+        },
+        {
+          "fieldId": "size",
+          "fieldName": "尺寸",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
         }
       ]
     },
