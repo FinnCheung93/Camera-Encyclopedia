@@ -42,8 +42,33 @@
       } catch (e) {}
     </script>
     <script src="js/github-storage.js"></script>
+    <script>
+      try {
+        if (window.DebugLog && DebugLog.add) {
+          DebugLog.add("info", "list-seq", "github-storage.js 已执行完毕");
+        }
+      } catch (e) {}
+    </script>
     <script src="js/nav.js"></script>
+    <script>
+      try {
+        if (window.DebugLog && DebugLog.add) {
+          DebugLog.add("info", "list-seq", "nav.js 已执行完毕");
+        }
+      } catch (e) {}
+    </script>
     <script src="js/list-page.js"></script>
+    <script>
+      try {
+        if (window.DebugLog && DebugLog.add) {
+          DebugLog.add(
+            "info",
+            "list-seq",
+            "list-page.js 脚本同步执行已结束（若仍无 list-page 来源日志，多为该文件未加载或解析失败）"
+          );
+        }
+      } catch (e) {}
+    </script>
     <script>
       (function () {
         var btn = document.getElementById("btnListDbgExport");
