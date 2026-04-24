@@ -98,6 +98,13 @@
           "fieldType": "text",
           "required": false,
           "isFilter": false
+        },
+        {
+          "fieldId": "iso",
+          "fieldName": "iSO 范围",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
         }
       ]
     },
