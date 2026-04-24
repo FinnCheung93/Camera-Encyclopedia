@@ -59,6 +59,20 @@
           "fieldType": "text",
           "required": false,
           "isFilter": true
+        },
+        {
+          "fieldId": "focalLength",
+          "fieldName": "焦段",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "aperture",
+          "fieldName": "光圈",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
         }
       ]
     },
