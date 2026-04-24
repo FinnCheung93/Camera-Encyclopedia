@@ -278,7 +278,7 @@
           blocks.push(
             '<div class="filter-block"><h4>' +
               AppUtils.escapeHtml(f.fieldName) +
-              "（多选）</h4><div class="chips" data-sel-block="' +
+              '（多选）</h4><div class="chips" data-sel-block="' +
               AppUtils.escapeHtml(f.fieldId) +
               '">' +
               selectFilterChips(f) +
