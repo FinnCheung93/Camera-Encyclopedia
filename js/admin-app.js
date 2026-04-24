@@ -60,10 +60,58 @@
     }
   });
 
+  /**
+   * 保存前轻量校验，避免把明显损坏的结构写进仓库。
+   * @returns {string|null} 首条错误信息，通过则 null
+   */
+  function validateDbForSave(db) {
+    if (!db || typeof db !== "object") return "数据根对象无效";
+    if (!db.siteConfig || typeof db.siteConfig !== "object") return "缺少 siteConfig";
+    if (!Array.isArray(db.categoryConfig)) return "categoryConfig 必须是数组";
+    if (!Array.isArray(db.cameraData)) return "cameraData 必须是数组";
+
+    var catIds = {};
+    for (var ci = 0; ci < db.categoryConfig.length; ci++) {
+      var cat = db.categoryConfig[ci];
+      if (!cat || typeof cat !== "object") return "分类第 " + (ci + 1) + " 项无效";
+      var cid = String(cat.categoryId || "").trim();
+      if (!cid) return "分类第 " + (ci + 1) + " 项缺少 categoryId";
+      if (catIds[cid]) return "重复的 categoryId：" + cid;
+      catIds[cid] = true;
+      if (!String(cat.categoryName || "").trim()) return "分类「" + cid + "」缺少名称";
+      if (cat.fieldConfig != null && !Array.isArray(cat.fieldConfig)) {
+        return "分类「" + cid + "」的 fieldConfig 必须是数组";
+      }
+      if (Array.isArray(cat.fieldConfig)) {
+        for (var fi = 0; fi < cat.fieldConfig.length; fi++) {
+          var fld = cat.fieldConfig[fi];
+          if (!fld || typeof fld !== "object") return "分类「" + cid + "」字段第 " + (fi + 1) + " 项无效";
+          if (!String(fld.fieldId || "").trim()) return "分类「" + cid + "」存在未填写 fieldId 的字段行";
+        }
+      }
+    }
+
+    var seenCamId = {};
+    for (var i = 0; i < db.cameraData.length; i++) {
+      var cam = db.cameraData[i];
+      if (!cam || typeof cam !== "object") return "相机第 " + (i + 1) + " 条无效";
+      var idKey = String(cam.id);
+      if (idKey === "" || idKey === "undefined") return "相机第 " + (i + 1) + " 条缺少 id";
+      if (seenCamId[idKey]) return "重复的相机 id：" + idKey;
+      seenCamId[idKey] = true;
+      var ccat = String(cam.categoryId || "").trim();
+      if (!ccat) return "相机 id " + idKey + " 缺少 categoryId";
+      if (!catIds[ccat]) return "相机 id " + idKey + " 的 categoryId「" + ccat + "」不存在于分类表";
+    }
+    return null;
+  }
+
   async function persist(message) {
     if (typeof DebugLog !== "undefined" && DebugLog.add) {
       DebugLog.add("info", "admin-app", "persist 调用", { message: (message || "").slice(0, 120) });
     }
+    var vErr = validateDbForSave(DB);
+    if (vErr) throw new Error("保存已取消：" + vErr);
     await GithubStorage.saveJson(DB, message || "chore: update data.json via admin");
     if (typeof DebugLog !== "undefined" && DebugLog.add) {
       DebugLog.add("info", "admin-app", "persist 完成");
@@ -129,6 +177,16 @@
   function renderSite() {
     var s = DB.siteConfig || {};
     var gh = s.githubConfig || {};
+    var cfgGh = (typeof window !== "undefined" && window.APP_CONFIG && window.APP_CONFIG.github) || {};
+    var effOwner = String(cfgGh.owner || "").trim();
+    var effRepo = String(cfgGh.repo || "").trim();
+    var effBranch = String(cfgGh.branch || "").trim();
+    var effHint =
+      effOwner && effRepo
+        ? "当前站点读写 data.json 使用根目录 <strong>config.js</strong>：<code>" +
+          AppUtils.escapeHtml(effOwner + "/" + effRepo + "@" + (effBranch || "—")) +
+          "</code>。下方三项仅写入 <strong>data.json</strong> 作备忘/文档，<strong>不会</strong>改变实际 API 行为；请与 config.js 保持一致以免混淆。"
+        : "请在仓库根目录 <strong>config.js</strong> 填写 <code>github.owner</code> / <code>github.repo</code> / <code>github.branch</code>；下方为写入 data.json 的备忘字段，不参与读写 API。";
     panel.innerHTML =
       '<div class="section-title">网站基础配置</div>' +
       '<div class="form-grid">' +
@@ -138,11 +196,14 @@
       '<div class="form-field"><label>列表默认视图</label><select class="select" id="defaultView" style="max-width:none"><option value="card">卡片</option><option value="table">表格</option></select></div>' +
       '<div class="form-field"><label>后台登录密码（写入 data.json）</label><input class="input" id="password" type="text" style="max-width:none" /></div>' +
       "</div>" +
-      '<p class="muted" style="margin:12px 0 8px;">GitHub 仓库信息（写入 data.json；Token 仍在 config.js 维护更安全）</p>' +
+      '<p class="muted" style="margin:12px 0 8px;line-height:1.55;">' +
+      effHint +
+      "</p>" +
+      '<p class="muted" style="margin:0 0 8px;">PAT 请用 <strong>setup-token.html</strong> 存本机，勿提交进 config.js。</p>' +
       '<div class="form-grid">' +
-      '<div class="form-field"><label>owner</label><input class="input" id="ghOwner" style="max-width:none" /></div>' +
-      '<div class="form-field"><label>repo</label><input class="input" id="ghRepo" style="max-width:none" /></div>' +
-      '<div class="form-field"><label>branch</label><input class="input" id="ghBranch" style="max-width:none" /></div>' +
+      '<div class="form-field"><label>owner（备忘）</label><input class="input" id="ghOwner" style="max-width:none" /></div>' +
+      '<div class="form-field"><label>repo（备忘）</label><input class="input" id="ghRepo" style="max-width:none" /></div>' +
+      '<div class="form-field"><label>branch（备忘）</label><input class="input" id="ghBranch" style="max-width:none" /></div>' +
       "</div>" +
       '<div class="admin-action-bar">' +
       '<span class="admin-action-bar__spacer" aria-hidden="true"></span>' +

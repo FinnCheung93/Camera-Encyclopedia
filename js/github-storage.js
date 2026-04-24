@@ -275,6 +275,15 @@
         try {
           errMsg = JSON.parse(text).message || text;
         } catch (e) {}
+        var low = String(errMsg || "").toLowerCase();
+        if (
+          res.status === 409 ||
+          res.status === 422 ||
+          (low.indexOf("sha") >= 0 && (low.indexOf("mismatch") >= 0 || low.indexOf("not match") >= 0))
+        ) {
+          errMsg +=
+            " 若你曾在其他标签页或机器上保存过 data.json：请刷新本页重新加载后再保存，避免版本冲突。";
+        }
         throw new Error("写入仓库失败：" + errMsg);
       }
       var out = JSON.parse(text);

@@ -36,3 +36,13 @@ alwaysApply: true
 
 - 相机顶层字段见 **`AppUtils.ROOT_FIELD_IDS`**（`js/utils.js`）；其余进 **`cameras[].specs`**。
 - 后台字段顺序：表格左侧 **≈** 拖拽；**保存** 类按钮为写入仓库的主操作。
+
+## 迭代维护时的优化判断（助手自问）
+
+改代码时按需对照下列项；**仅在实际触发阈值或风险时**向用户简要建议下一步，不必为优化而优化。
+
+1. **admin-app.js 体量**：单文件是否长期超过约 1200 行，或某一功能块（导入、相机表、字段表等）是否明显难定位；若是，可建议拆成多个脚本或 ES modules，而不是继续单文件堆叠。
+2. **数据模型与字段**：是否改动 `ROOT_FIELD_IDS`、`fieldConfig` / `fieldType`、校验或 `data.json` 顶层结构；若是，同步检查 `list-page.js`、`utils.js`、`templates/import-template.json` 与相关手册。
+3. **配置双轨**：是否动到 GitHub 的 owner/repo/branch、raw 路径或 `siteConfig.githubConfig`；若是，核对后台文案与 `config.js` 注释、部署手册是否仍一致。
+4. **安全与敏感行为**：是否涉及 PAT、登录、`password`、或对外暴露数据；若是，明确个人站点的安全边界（例如公开仓内密码仅为防误触）。
+5. **构建与部署假设**：是否引入构建步骤、新依赖或打破「静态 + GitHub Pages」；若是，单独说明取舍并征得同意后再做。
