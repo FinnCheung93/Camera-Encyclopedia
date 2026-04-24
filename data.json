@@ -73,6 +73,13 @@
           "fieldType": "text",
           "required": false,
           "isFilter": false
+        },
+        {
+          "fieldId": "alias",
+          "fieldName": "别称",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
         }
       ]
     },
