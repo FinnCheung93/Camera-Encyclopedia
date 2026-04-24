@@ -9,6 +9,12 @@
   var activeSection = "site";
   var modalCtx = null;
 
+  function syncAdminDocumentTitle() {
+    if (!DB || !DB.siteConfig) return;
+    var t = (DB.siteConfig.siteTitle && String(DB.siteConfig.siteTitle).trim()) || "相机图鉴";
+    document.title = "后台管理 · " + t;
+  }
+
   var navMount = AppUtils.$("#adminNav");
   var panel = AppUtils.$("#adminPanel");
   var mask = AppUtils.$("#modalMask");
@@ -51,7 +57,13 @@
   });
 
   async function persist(message) {
+    if (typeof DebugLog !== "undefined" && DebugLog.add) {
+      DebugLog.add("info", "admin-app", "persist 调用", { message: (message || "").slice(0, 120) });
+    }
     await GithubStorage.saveJson(DB, message || "chore: update data.json via admin");
+    if (typeof DebugLog !== "undefined" && DebugLog.add) {
+      DebugLog.add("info", "admin-app", "persist 完成");
+    }
     AppUtils.toast("已保存到仓库");
   }
 
@@ -87,6 +99,7 @@
       { id: "cameras", label: "相机数据" },
       { id: "import", label: "批量导入" },
       { id: "backup", label: "备份与恢复" },
+      { id: "debuglog", label: "调试日志" },
     ];
     navMount.innerHTML = tabs
       .map(function (t) {
@@ -154,6 +167,7 @@
       };
       try {
         await persist("admin: update site config");
+        syncAdminDocumentTitle();
       } catch (e) {
         AppUtils.toast(e.message || String(e), "error");
       }
@@ -893,6 +907,48 @@
     });
   }
 
+  function renderDebugLog() {
+    panel.innerHTML =
+      '<div class="section-title">调试日志</div>' +
+      '<p class="muted" style="margin:0 0 12px;">记录本机浏览器最近约 6 小时内的前台/数据加载步骤（仅存于 localStorage，不含 Token）。复现「卡在加载中」后打开本页，导出 JSON 发给维护者排查。</p>' +
+      '<div class="row" style="margin-bottom:10px;flex-wrap:wrap;">' +
+      '<button type="button" class="btn btn-primary" id="dbgRefresh">刷新列表</button>' +
+      '<button type="button" class="btn" id="dbgExport">导出 JSON</button>' +
+      '<button type="button" class="btn" id="dbgClear">清空日志</button>' +
+      "</div>" +
+      '<pre class="panel" id="dbgPre" style="max-height:480px;overflow:auto;font-size:12px;line-height:1.45;margin:0;"></pre>';
+
+    function paintDbg() {
+      var pre = AppUtils.$("#dbgPre");
+      if (!pre) return;
+      if (typeof DebugLog === "undefined" || !DebugLog.getRecent) {
+        pre.textContent = "未加载 debug-log.js";
+        return;
+      }
+      pre.textContent = DebugLog.exportJson();
+    }
+
+    paintDbg();
+    AppUtils.$("#dbgRefresh").addEventListener("click", paintDbg);
+    AppUtils.$("#dbgExport").addEventListener("click", function () {
+      if (typeof DebugLog === "undefined" || !DebugLog.exportJson) return;
+      var blob = new Blob([DebugLog.exportJson()], { type: "application/json;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "camera-ency-debug-log.json";
+      a.click();
+      setTimeout(function () {
+        URL.revokeObjectURL(a.href);
+      }, 2000);
+      AppUtils.toast("已下载 camera-ency-debug-log.json");
+    });
+    AppUtils.$("#dbgClear").addEventListener("click", function () {
+      if (typeof DebugLog !== "undefined" && DebugLog.clear) DebugLog.clear();
+      paintDbg();
+      AppUtils.toast("已清空本机调试日志");
+    });
+  }
+
   function renderAll() {
     renderNav();
     if (activeSection === "site") renderSite();
@@ -901,13 +957,30 @@
     else if (activeSection === "cameras") renderCameras();
     else if (activeSection === "import") renderImport();
     else if (activeSection === "backup") renderBackup();
+    else if (activeSection === "debuglog") renderDebugLog();
   }
 
   async function boot() {
     try {
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("info", "admin-app", "boot 开始", { path: location.pathname });
+      }
       DB = await GithubStorage.loadJson();
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("info", "admin-app", "loadJson 完成，准备 renderAll");
+      }
       renderAll();
+      syncAdminDocumentTitle();
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("info", "admin-app", "renderAll 完成");
+      }
     } catch (e) {
+      document.title = "后台管理 · 加载失败";
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("error", "admin-app", "boot 失败: " + (e.message || String(e)), {
+          stack: String(e.stack || ""),
+        });
+      }
       panel.innerHTML = '<div class="empty">加载失败：' + AppUtils.escapeHtml(e.message || String(e)) + "</div>";
       AppUtils.toast(e.message || String(e), "error");
     }

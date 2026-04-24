@@ -141,6 +141,8 @@
     var categoryId = params.category || "";
     var cat = getCategory(db, categoryId);
     if (!cat || cat.status !== "enable") {
+      var siteBad = db.siteConfig || {};
+      document.title = (siteBad.siteTitle && String(siteBad.siteTitle).trim()) || "相机图鉴";
       app.innerHTML =
         '<div class="empty">分类不存在或未启用。请从<a href="index.html">首页</a>进入。</div>';
       return;
@@ -161,6 +163,8 @@
 
     var baseList = camerasInCategory(db, cat.categoryId);
     var site = db.siteConfig || {};
+    var siteTitle = (site.siteTitle && String(site.siteTitle).trim()) || "相机图鉴";
+    document.title = (cat.categoryName || "列表") + " · " + siteTitle;
     var defaultView = site.defaultView === "table" ? "table" : "card";
 
     var state = {
@@ -463,10 +467,45 @@
   }
 
   async function boot() {
+    var params = AppUtils.parseParams();
+    if (typeof DebugLog !== "undefined" && DebugLog.add) {
+      DebugLog.add("info", "list-page", "boot 开始", {
+        path: location.pathname,
+        search: location.search,
+        category: params.category || "",
+      });
+    }
     try {
       var db = await GithubStorage.loadJson();
-      mount(db);
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("info", "list-page", "loadJson 完成，准备 mount", {
+          category: params.category || "",
+          categories: (db.categoryConfig || []).length,
+          cameras: (db.cameraData || []).length,
+        });
+      }
+      try {
+        mount(db);
+      } catch (e2) {
+        if (typeof DebugLog !== "undefined" && DebugLog.add) {
+          DebugLog.add("error", "list-page", "mount 抛错: " + (e2.message || String(e2)), {
+            stack: String(e2.stack || ""),
+            category: params.category || "",
+          });
+        }
+        throw e2;
+      }
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("info", "list-page", "mount 完成", { category: params.category || "" });
+      }
     } catch (e) {
+      document.title = "加载失败 · 相机图鉴";
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("error", "list-page", "boot 失败: " + (e.message || String(e)), {
+          stack: String(e.stack || ""),
+          category: params.category || "",
+        });
+      }
       app.innerHTML = '<div class="empty">加载失败：' + AppUtils.escapeHtml(e.message || String(e)) + "</div>";
       AppUtils.toast(e.message || String(e), "error");
     }

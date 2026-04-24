@@ -81,13 +81,31 @@
       '<div class="home-footer-line">最近更新：' + AppUtils.escapeHtml(siteTime || "—") + "</div>" +
       (author ? '<div class="home-footer-line">' + AppUtils.escapeHtml(author) + "</div>" : "");
     if (footer) footer.innerHTML = lines;
+
+    var tabTitle = (site.siteTitle && String(site.siteTitle).trim()) || "相机图鉴";
+    document.title = tabTitle;
   }
 
   async function boot() {
     try {
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("info", "index-page", "boot 开始", { path: location.pathname });
+      }
       var db = await GithubStorage.loadJson();
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("info", "index-page", "loadJson 完成，准备 render");
+      }
       render(db);
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("info", "index-page", "render 完成");
+      }
     } catch (e) {
+      document.title = "加载失败 · 相机图鉴";
+      if (typeof DebugLog !== "undefined" && DebugLog.add) {
+        DebugLog.add("error", "index-page", "boot 失败: " + (e.message || String(e)), {
+          stack: String(e.stack || ""),
+        });
+      }
       app.innerHTML = '<div class="empty">加载失败：' + AppUtils.escapeHtml(e.message || String(e)) + "</div>";
       if (footer) footer.innerHTML = "";
       AppUtils.toast(e.message || String(e), "error");

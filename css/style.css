@@ -89,27 +89,47 @@ label,
   cursor: pointer;
 }
 
-/* 首屏加载占位：轻量 spinner + 跳点（各页 #app / #adminPanel 初始内容） */
+/* 加载占位外层：主区域水平垂直居中（index / list / 后台首屏） */
+.app-boot-host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+main.container#app:not(.container--home) > .app-boot-host {
+  min-height: calc(100dvh - 140px);
+}
+
+.container--home#app > .app-boot-host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+#adminPanel > .app-boot-host {
+  min-height: 320px;
+}
+
+/* 首屏加载占位：转圈 + 文案 */
 .app-boot {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 18px;
-  padding: 40px 20px;
-  min-height: 200px;
+  padding: 24px 20px;
   box-sizing: border-box;
 }
 
-.container--home > .app-boot {
-  flex: 1;
-  min-height: 0;
-  padding: 24px 16px;
-}
-
 .app-boot--panel {
-  min-height: 220px;
-  padding: 32px 20px;
+  padding: 28px 20px;
 }
 
 .app-boot-spinner {

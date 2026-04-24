@@ -68,6 +68,14 @@
     );
   }
 
+  function logDbg(level, msg, meta) {
+    try {
+      if (global.DebugLog && global.DebugLog.add) {
+        global.DebugLog.add(level || "info", "github-storage", msg, meta);
+      }
+    } catch (e) {}
+  }
+
   /** 避免 fetch 长时间挂起导致页面一直停在「加载中」 */
   async function fetchWithTimeout(url, init, timeoutMs) {
     var ms = timeoutMs || 25000;
@@ -107,85 +115,135 @@
 
   async function loadJson() {
     var g = cfg();
-    if (g.useLocal) {
-      var res = await fetchWithTimeout("./data.json", { cache: "no-store" }, 25000);
-      if (!res.ok) throw new Error("无法读取本地 data.json（HTTP " + res.status + "）");
-      shaCache = null;
-      return await res.json();
-    }
-    if (!g.owner || !g.repo) {
-      throw new Error("请在 config.js 填写 github.owner 与 github.repo。");
-    }
+    var pagePath = "";
+    try {
+      if (typeof location !== "undefined") pagePath = location.pathname || "";
+    } catch (e) {}
+    logDbg("info", "loadJson 开始", {
+      page: pagePath,
+      useLocal: !!g.useLocal,
+      owner: g.owner,
+      repo: g.repo,
+      branch: g.branch,
+      dataPath: g.dataPath,
+    });
+    try {
+      if (g.useLocal) {
+        var res = await fetchWithTimeout("./data.json", { cache: "no-store" }, 25000);
+        if (!res.ok) throw new Error("无法读取本地 data.json（HTTP " + res.status + "）");
+        shaCache = null;
+        var localData = await res.json();
+        logDbg("info", "loadJson 成功(本地)", {
+          categories: (localData.categoryConfig || []).length,
+          cameras: (localData.cameraData || []).length,
+        });
+        return localData;
+      }
+      if (!g.owner || !g.repo) {
+        throw new Error("请在 config.js 填写 github.owner 与 github.repo。");
+      }
 
-    /**
-     * 公开仓库：GitHub Contents API 允许匿名读取（有频率限制），访客浏览前台无需 Token。
-     * 私有仓库：匿名会 404，需带 PAT；后台保存始终需要 PAT。
-     */
-    var first = await loadContentsOnce(false);
-    var res = first.res;
-    var text = first.text;
-    if (!res.ok && g.token) {
-      var second = await loadContentsOnce(true);
-      res = second.res;
-      text = second.text;
-    }
-    if (!res.ok) {
-      var errMsg = text;
-      try {
-        errMsg = JSON.parse(text).message || text;
-      } catch (e) {}
-      if (res.status === 401) {
-        errMsg +=
-          "（Token 无效/已撤销/已过期，或 Fine-grained 未勾选本仓库与 Contents 读权限；请用 setup-token 检查 PAT）";
+      /**
+       * 公开仓库：GitHub Contents API 允许匿名读取（有频率限制），访客浏览前台无需 Token。
+       * 私有仓库：匿名会 404，需带 PAT；后台保存始终需要 PAT。
+       */
+      var t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
+      logDbg("info", "GitHub Contents 请求（匿名）");
+      var first = await loadContentsOnce(false);
+      var dt = (typeof performance !== "undefined" ? performance.now() : Date.now()) - t0;
+      logDbg("info", "GitHub Contents 首响应", {
+        ok: first.res.ok,
+        status: first.res.status,
+        ms: Math.round(dt),
+      });
+      var res = first.res;
+      var text = first.text;
+      if (!res.ok && g.token) {
+        logDbg("info", "匿名失败，使用 Token 重试");
+        t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
+        var second = await loadContentsOnce(true);
+        dt = (typeof performance !== "undefined" ? performance.now() : Date.now()) - t0;
+        logDbg("info", "GitHub Contents 带 Token 响应", {
+          ok: second.res.ok,
+          status: second.res.status,
+          ms: Math.round(dt),
+        });
+        res = second.res;
+        text = second.text;
       }
-      if ((res.status === 404 || res.status === 403) && !g.token) {
-        errMsg +=
-          " 若为私有仓库，匿名无法读取 data.json：请把仓库改为 Public，或在 setup-token.html 配置 PAT（仅你自己浏览器需要，访客仍无法在无 Token 下读私有库）。";
+      if (!res.ok) {
+        var errMsg = text;
+        try {
+          errMsg = JSON.parse(text).message || text;
+        } catch (e) {}
+        if (res.status === 401) {
+          errMsg +=
+            "（Token 无效/已撤销/已过期，或 Fine-grained 未勾选本仓库与 Contents 读权限；请用 setup-token 检查 PAT）";
+        }
+        if ((res.status === 404 || res.status === 403) && !g.token) {
+          errMsg +=
+            " 若为私有仓库，匿名无法读取 data.json：请把仓库改为 Public，或在 setup-token.html 配置 PAT（仅你自己浏览器需要，访客仍无法在无 Token 下读私有库）。";
+        }
+        throw new Error("读取仓库失败：" + errMsg);
       }
-      throw new Error("读取仓库失败：" + errMsg);
+      var meta = JSON.parse(text);
+      if (!meta.content) throw new Error("GitHub 返回无 content 字段");
+      shaCache = meta.sha;
+      var jsonStr = base64ToUtf8(meta.content);
+      var data = JSON.parse(jsonStr);
+      logDbg("info", "loadJson 成功(GitHub)", {
+        categories: (data.categoryConfig || []).length,
+        cameras: (data.cameraData || []).length,
+      });
+      return data;
+    } catch (e) {
+      logDbg("error", "loadJson 失败: " + (e.message || String(e)), { stack: String(e.stack || "") });
+      throw e;
     }
-    var meta = JSON.parse(text);
-    if (!meta.content) throw new Error("GitHub 返回无 content 字段");
-    shaCache = meta.sha;
-    var jsonStr = base64ToUtf8(meta.content);
-    return JSON.parse(jsonStr);
   }
 
   async function saveJson(dataObj, commitMessage) {
-    var g = cfg();
-    if (g.useLocal) {
-      throw new Error("当前为本地预览模式（useLocalDataJson=true），不会写入 GitHub。请改为 false 并部署后使用后台保存。");
+    logDbg("info", "saveJson 开始", { hasSha: !!shaCache });
+    try {
+      var g = cfg();
+      if (g.useLocal) {
+        throw new Error("当前为本地预览模式（useLocalDataJson=true），不会写入 GitHub。请改为 false 并部署后使用后台保存。");
+      }
+      if (!g.owner || !g.repo || !g.token) {
+        throw new Error("保存前请在 setup-token.html 写入 PAT，或在 config.js 填写 github.token（勿提交到公开仓库）。");
+      }
+      var url = apiUrl("contents/" + encodeURIComponent(g.dataPath));
+      var body = {
+        message: commitMessage || "chore: update data.json",
+        content: utf8ToBase64(JSON.stringify(dataObj, null, 2)),
+        branch: g.branch,
+      };
+      if (shaCache) body.sha = shaCache;
+      var res = await fetchWithTimeout(
+        url,
+        {
+          method: "PUT",
+          headers: Object.assign({ "Content-Type": "application/json" }, authHeaders()),
+          body: JSON.stringify(body),
+        },
+        60000
+      );
+      var text = await res.text();
+      if (!res.ok) {
+        var errMsg = text;
+        try {
+          errMsg = JSON.parse(text).message || text;
+        } catch (e) {}
+        throw new Error("写入仓库失败：" + errMsg);
+      }
+      var out = JSON.parse(text);
+      if (out.content && out.content.sha) shaCache = out.content.sha;
+      logDbg("info", "saveJson 成功");
+      return out;
+    } catch (e) {
+      logDbg("error", "saveJson 失败: " + (e.message || String(e)), { stack: String(e.stack || "") });
+      throw e;
     }
-    if (!g.owner || !g.repo || !g.token) {
-      throw new Error("保存前请在 setup-token.html 写入 PAT，或在 config.js 填写 github.token（勿提交到公开仓库）。");
-    }
-    var url = apiUrl("contents/" + encodeURIComponent(g.dataPath));
-    var body = {
-      message: commitMessage || "chore: update data.json",
-      content: utf8ToBase64(JSON.stringify(dataObj, null, 2)),
-      branch: g.branch,
-    };
-    if (shaCache) body.sha = shaCache;
-    var res = await fetchWithTimeout(
-      url,
-      {
-        method: "PUT",
-        headers: Object.assign({ "Content-Type": "application/json" }, authHeaders()),
-        body: JSON.stringify(body),
-      },
-      60000
-    );
-    var text = await res.text();
-    if (!res.ok) {
-      var errMsg = text;
-      try {
-        errMsg = JSON.parse(text).message || text;
-      } catch (e) {}
-      throw new Error("写入仓库失败：" + errMsg);
-    }
-    var out = JSON.parse(text);
-    if (out.content && out.content.sha) shaCache = out.content.sha;
-    return out;
   }
 
   function getSha() {

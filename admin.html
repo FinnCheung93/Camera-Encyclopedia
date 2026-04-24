@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>后台管理 · 个人相机收藏图鉴</title>
+    <title>后台管理 · 相机图鉴</title>
     <link rel="stylesheet" href="css/style.css" />
     <script>
       if (sessionStorage.getItem("ADM_AUTH") !== "1") {
@@ -27,9 +27,11 @@
       <div class="admin-layout">
         <aside class="admin-nav" id="adminNav"></aside>
         <div class="panel" id="adminPanel">
-          <div class="app-boot app-boot--panel" role="status" aria-live="polite" aria-busy="true">
-            <div class="app-boot-spinner" aria-hidden="true"></div>
-            <p class="app-boot-text">正在加载数据</p>
+          <div class="app-boot-host">
+            <div class="app-boot app-boot--panel" role="status" aria-live="polite" aria-busy="true">
+              <div class="app-boot-spinner" aria-hidden="true"></div>
+              <p class="app-boot-text">正在加载</p>
+            </div>
           </div>
         </div>
       </div>
@@ -50,6 +52,7 @@
 
     <script src="config.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/debug-log.js"></script>
     <script src="js/github-storage.js"></script>
     <script src="js/admin-app.js"></script>
   </body>
