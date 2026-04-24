@@ -1,7 +1,6 @@
 /** 首页：站点介绍 + 分类入口（居中简化布局） */
 (function () {
   var app = AppUtils.$("#app");
-  var footer = AppUtils.$("#footer");
 
   function render(db) {
     var site = db.siteConfig || {};
@@ -37,11 +36,6 @@
       })
       .join("");
 
-    var author = (site.author || "").trim();
-    var authorBlock = author
-      ? '<p class="home-author muted">署名：' + AppUtils.escapeHtml(author) + "</p>"
-      : "";
-
     app.innerHTML =
       '<div class="home-shell">' +
       '<div class="home-inner">' +
@@ -52,22 +46,12 @@
       '<p class="home-desc">' +
       AppUtils.escapeHtml(site.siteDesc || "") +
       "</p>" +
-      authorBlock +
       "</header>" +
       '<div class="category-showcase">' +
       (catTiles || '<div class="empty">暂无启用分类</div>') +
       "</div>" +
       "</div>" +
       "</div>";
-
-    var siteTime = "";
-    try {
-      siteTime = new Date(document.lastModified).toISOString().slice(0, 10);
-    } catch (e) {}
-    footer.innerHTML =
-      "网站文件更新时间：" +
-      AppUtils.escapeHtml(siteTime) +
-      ' · <a href="setup-token.html">GitHub PAT 本机设置</a>（勿把 Token 写进仓库文件）';
   }
 
   async function boot() {
