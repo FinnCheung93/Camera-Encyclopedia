@@ -84,9 +84,13 @@
         {
           "fieldId": "macro",
           "fieldName": "微距",
-          "fieldType": "text",
+          "fieldType": "select",
           "required": false,
-          "isFilter": false
+          "isFilter": false,
+          "options": [
+            "有",
+            "无"
+          ]
         }
       ]
     },
