@@ -823,4 +823,36 @@ table.data-table {
   cursor: grab;
   color: var(--muted);
   padding: 0 6px;
+  user-select: none;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* 后台：底部主操作（保存/提交）靠右，次要操作靠左 */
+.admin-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.admin-action-bar--tight {
+  margin-top: 10px;
+}
+.admin-action-bar--modal {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.admin-action-bar__spacer {
+  flex: 1 1 auto;
+  min-width: 12px;
+}
+
+.data-table .td-drag {
+  width: 44px;
+  text-align: center;
+  vertical-align: middle;
+  cursor: default;
 }

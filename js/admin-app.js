@@ -8,6 +8,10 @@
   var DB = null;
   var activeSection = "site";
   var modalCtx = null;
+  /** 一级分类表行拖拽 */
+  var dragCatId = null;
+  /** 字段表行拖拽 */
+  var dragFieldRowTr = null;
 
   function syncAdminDocumentTitle() {
     if (!DB || !DB.siteConfig) return;
@@ -140,7 +144,8 @@
       '<div class="form-field"><label>repo</label><input class="input" id="ghRepo" style="max-width:none" /></div>' +
       '<div class="form-field"><label>branch</label><input class="input" id="ghBranch" style="max-width:none" /></div>' +
       "</div>" +
-      '<div class="row" style="margin-top:14px;">' +
+      '<div class="admin-action-bar">' +
+      '<span class="admin-action-bar__spacer" aria-hidden="true"></span>' +
       '<button class="btn btn-primary" type="button" id="saveSite">保存配置</button>' +
       "</div>";
 
@@ -181,11 +186,11 @@
           "<tr draggable=\"true\" data-id=\"" +
           AppUtils.escapeHtml(c.categoryId) +
           "\">" +
-          "<td><span class=\"drag-handle\">≡</span> " +
+          "<td><span class=\"drag-handle\" aria-label=\"拖动排序\" title=\"拖动排序\">≡</span> " +
           AppUtils.escapeHtml(c.categoryName) +
           "</td>" +
-          "<td>" +
-          AppUtils.escapeHtml(String(c.sort || idx + 1)) +
+          "<td class=\"muted\">" +
+          (idx + 1) +
           "</td>" +
           "<td>" +
           AppUtils.escapeHtml(c.status || "enable") +
@@ -208,14 +213,15 @@
 
     panel.innerHTML =
       '<div class="section-title">一级大类型</div>' +
-      '<p class="muted">拖拽左侧手柄调整顺序；保存后写入 sort 字段。</p>' +
-      '<table class="data-table" style="margin-bottom:12px;"><thead><tr><th>名称</th><th>排序</th><th>状态</th><th>机型数</th><th>操作</th></tr></thead><tbody id="catBody">' +
+      '<p class="muted">拖拽左侧 ≈ 手柄调整顺序；完成后点击右侧「保存分类变更」写入 sort 与 data.json。</p>' +
+      '<table class="data-table" style="margin-bottom:12px;"><thead><tr><th>名称</th><th>顺序</th><th>状态</th><th>机型数</th><th>操作</th></tr></thead><tbody id="catBody">' +
       (rows || "") +
       "</tbody></table>" +
-      '<div class="row" style="margin-bottom:10px;">' +
+      '<div class="admin-action-bar admin-action-bar--tight">' +
       '<input class="input" id="newCatName" placeholder="新分类名称" style="max-width:240px" />' +
-      '<button class="btn btn-primary" type="button" id="addCat">新增分类</button>' +
-      '<button class="btn" type="button" id="saveCats">保存分类变更</button>' +
+      '<button class="btn" type="button" id="addCat">新增分类</button>' +
+      '<span class="admin-action-bar__spacer" aria-hidden="true"></span>' +
+      '<button class="btn btn-primary" type="button" id="saveCats">保存分类变更</button>' +
       "</div>";
 
     wireDragCategories();
@@ -256,13 +262,11 @@
           buildCatForm(cat),
           async function () {
             cat.categoryName = AppUtils.$("#m_catName").value.trim();
-            cat.sort = Number(AppUtils.$("#m_catSort").value) || 1;
             cat.status = AppUtils.$("#m_catStatus").value;
             await persist("admin: edit category " + id);
           },
           function () {
             AppUtils.$("#m_catName").value = cat.categoryName || "";
-            AppUtils.$("#m_catSort").value = String(cat.sort || 1);
             AppUtils.$("#m_catStatus").value = cat.status === "disable" ? "disable" : "enable";
           }
         );
@@ -301,23 +305,34 @@
   function buildCatForm(cat) {
     return (
       '<div class="form-field"><label>名称</label><input class="input" id="m_catName" style="max-width:none" /></div>' +
-      '<div class="form-field"><label>排序序号</label><input class="input" id="m_catSort" type="number" style="max-width:none" /></div>' +
-      '<div class="form-field"><label>状态</label><select class="select" id="m_catStatus" style="max-width:none"><option value="enable">启用</option><option value="disable">禁用</option></select></div>'
+      '<div class="form-field"><label>状态</label><select class="select" id="m_catStatus" style="max-width:none"><option value="enable">启用</option><option value="disable">禁用</option></select></div>' +
+      '<p class="muted" style="margin:0;font-size:13px;">显示顺序请在列表页拖拽 ≈ 手柄调整，无需在此填写序号。</p>'
     );
   }
 
-  var dragCatId = null;
   function wireDragCategories() {
     var tbody = AppUtils.$("#catBody");
     if (!tbody) return;
     AppUtils.$all("tr[draggable]", tbody).forEach(function (tr) {
-      tr.addEventListener("dragstart", function () {
+      tr.addEventListener("dragstart", function (e) {
+        if (!e.target.closest(".drag-handle")) {
+          e.preventDefault();
+          return;
+        }
         dragCatId = tr.getAttribute("data-id");
+        try {
+          e.dataTransfer.setData("text/plain", "cat-row");
+          e.dataTransfer.effectAllowed = "move";
+        } catch (err) {}
       });
       tr.addEventListener("dragover", function (e) {
         e.preventDefault();
+        try {
+          e.dataTransfer.dropEffect = "move";
+        } catch (err2) {}
       });
-      tr.addEventListener("drop", function () {
+      tr.addEventListener("drop", function (e) {
+        e.preventDefault();
         var targetId = tr.getAttribute("data-id");
         if (!dragCatId || !targetId || dragCatId === targetId) return;
         var list = sortedCategories();
@@ -334,6 +349,9 @@
           c.sort = i + 1;
         });
         renderAll();
+      });
+      tr.addEventListener("dragend", function () {
+        dragCatId = null;
       });
     });
   }
@@ -359,10 +377,11 @@
       opts +
       "</select>" +
       "</div>" +
-      '<div class="muted" style="margin:8px 0;">字段配置表（fieldId 创建后勿随意修改，以免影响历史数据）</div>' +
-      '<div class="table-wrap" style="margin-bottom:10px;"><table class="data-table"><thead><tr><th>fieldId</th><th>名称</th><th>类型</th><th>必填</th><th>筛选</th><th>选项(逗号)</th><th></th></tr></thead><tbody id="fieldRows"></tbody></table></div>' +
-      '<div class="row">' +
+      '<p class="muted" style="margin:8px 0 0;">字段表：fieldId 创建后勿随意改名，以免影响历史 specs。拖拽左侧 ≈ 调整顺序，完成后点右侧「保存字段配置」。</p>' +
+      '<div class="table-wrap" style="margin-bottom:10px;"><table class="data-table"><thead><tr><th class="td-drag"></th><th>fieldId</th><th>名称</th><th>类型</th><th>必填</th><th>筛选</th><th>选项(逗号)</th><th>操作</th></tr></thead><tbody id="fieldRows"></tbody></table></div>' +
+      '<div class="admin-action-bar admin-action-bar--tight">' +
       '<button class="btn" type="button" id="addFieldRow">新增字段</button>' +
+      '<span class="admin-action-bar__spacer" aria-hidden="true"></span>' +
       '<button class="btn btn-primary" type="button" id="saveFields">保存字段配置</button>' +
       "</div>";
 
@@ -373,16 +392,56 @@
       });
     }
 
+    function wireFieldRowDrag() {
+      var tbody = AppUtils.$("#fieldRows");
+      if (!tbody) return;
+      AppUtils.$all("tr[data-field-row]", tbody).forEach(function (tr) {
+        tr.addEventListener("dragstart", function (e) {
+          if (!e.target.closest(".drag-handle")) {
+            e.preventDefault();
+            return;
+          }
+          dragFieldRowTr = tr;
+          try {
+            e.dataTransfer.setData("text/plain", "field-row");
+            e.dataTransfer.effectAllowed = "move";
+          } catch (err) {}
+        });
+        tr.addEventListener("dragover", function (e) {
+          e.preventDefault();
+          try {
+            e.dataTransfer.dropEffect = "move";
+          } catch (err2) {}
+        });
+        tr.addEventListener("drop", function (e) {
+          e.preventDefault();
+          var catInner = currentCat();
+          if (!catInner || !catInner.fieldConfig || !dragFieldRowTr) return;
+          if (dragFieldRowTr === tr) return;
+          var rowList = AppUtils.$all("#fieldRows tr");
+          var from = rowList.indexOf(dragFieldRowTr);
+          var to = rowList.indexOf(tr);
+          if (from < 0 || to < 0) return;
+          var arr = catInner.fieldConfig;
+          var moved = arr.splice(from, 1)[0];
+          arr.splice(to, 0, moved);
+          paintRows();
+        });
+        tr.addEventListener("dragend", function () {
+          dragFieldRowTr = null;
+        });
+      });
+    }
+
     function paintRows() {
       var cat = currentCat();
       if (!cat) return;
       var body = AppUtils.$("#fieldRows");
       body.innerHTML = (cat.fieldConfig || [])
-        .map(function (f, idx) {
+        .map(function (f) {
           return (
-            "<tr data-idx=\"" +
-            idx +
-            "\">" +
+            '<tr draggable="true" data-field-row="1">' +
+            '<td class="td-drag"><span class="drag-handle" aria-label="拖动排序" title="拖动排序">≡</span></td>' +
             '<td><input class="input" data-k="fieldId" style="max-width:140px" value="' +
             AppUtils.escapeHtml(f.fieldId) +
             "\" /></td>" +
@@ -413,37 +472,23 @@
             '<td><input class="input" data-k="options" style="max-width:220px" value="' +
             AppUtils.escapeHtml((f.options || []).join(",")) +
             "\" /></td>" +
-            '<td><button class="btn" type="button" data-del-field="' +
-            idx +
-            '">删</button> ' +
-            '<button class="btn" type="button" data-up-field="' +
-            idx +
-            '">↑</button> ' +
-            '<button class="btn" type="button" data-down-field="' +
-            idx +
-            '">↓</button></td>' +
+            '<td><button class="btn" type="button" data-del-field="1">删除</button></td>' +
             "</tr>"
           );
         })
         .join("");
       AppUtils.$all("[data-del-field]", body).forEach(function (b) {
         b.addEventListener("click", function () {
-          var i = Number(b.getAttribute("data-del-field"));
+          var trEl = b.closest ? b.closest("tr") : null;
+          if (!trEl) return;
+          var rowList = AppUtils.$all("#fieldRows tr");
+          var i = rowList.indexOf(trEl);
+          if (i < 0) return;
           cat.fieldConfig.splice(i, 1);
           paintRows();
         });
       });
-      AppUtils.$all("[data-up-field],[data-down-field]", body).forEach(function (b) {
-        b.addEventListener("click", function () {
-          var i = Number(b.getAttribute("data-up-field") || b.getAttribute("data-down-field"));
-          var j = b.hasAttribute("data-up-field") ? i - 1 : i + 1;
-          if (j < 0 || j >= cat.fieldConfig.length) return;
-          var tmp = cat.fieldConfig[i];
-          cat.fieldConfig[i] = cat.fieldConfig[j];
-          cat.fieldConfig[j] = tmp;
-          paintRows();
-        });
-      });
+      wireFieldRowDrag();
     }
 
     AppUtils.$("#fieldCat").addEventListener("change", paintRows);
@@ -621,11 +666,12 @@
       .join("");
     panel.innerHTML =
       '<div class="section-title">相机数据</div>' +
-      '<div class="row" style="margin-bottom:10px;">' +
+      '<div class="admin-action-bar admin-action-bar--tight">' +
       '<select class="select" id="camCat" style="max-width:260px">' +
       opts +
       "</select>" +
       '<input class="input" id="camSearch" placeholder="品牌/机型搜索" style="max-width:260px" />' +
+      '<span class="admin-action-bar__spacer" aria-hidden="true"></span>' +
       '<button class="btn btn-primary" type="button" id="camAdd">新增机型</button>' +
       "</div>" +
       '<div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>品牌</th><th>机型</th><th>年份</th><th>更新</th><th></th></tr></thead><tbody id="camBody"></tbody></table></div>';
@@ -759,12 +805,11 @@
       "</select></div>" +
       '<div class="form-field"><label>目标品牌</label><input class="input" id="impBrand" style="max-width:none" placeholder="例如：佳能" /></div>' +
       "</div>" +
-      '<div class="row" style="margin:10px 0;">' +
+      '<pre class="panel" id="impPreview" style="max-height:240px;overflow:auto;display:none;margin:10px 0;"></pre>' +
+      '<div class="admin-action-bar admin-action-bar--tight">' +
       '<a class="btn btn-ghost" href="templates/import-template.json" download>下载模板</a>' +
       '<input type="file" id="impFile" accept="application/json,.json" />' +
-      "</div>" +
-      '<pre class="panel" id="impPreview" style="max-height:240px;overflow:auto;display:none;"></pre>' +
-      '<div class="row">' +
+      '<span class="admin-action-bar__spacer" aria-hidden="true"></span>' +
       '<button class="btn btn-primary" type="button" id="impDo" disabled>确认导入</button>' +
       "</div>";
 
@@ -836,7 +881,7 @@
   function renderBackup() {
     panel.innerHTML =
       '<div class="section-title">备份与恢复</div>' +
-      '<div class="row" style="margin-bottom:10px;">' +
+      '<div class="admin-action-bar admin-action-bar--tight">' +
       '<button class="btn btn-primary" type="button" id="dlBackup">一键备份（下载 data.json）</button>' +
       "</div>" +
       '<div class="form-field">' +
@@ -844,7 +889,8 @@
       '<input type="file" id="restoreFile" accept="application/json,.json" />' +
       "</div>" +
       '<pre class="panel" id="restorePreview" style="max-height:260px;overflow:auto;display:none;"></pre>' +
-      '<div class="row">' +
+      '<div class="admin-action-bar admin-action-bar--tight">' +
+      '<span class="admin-action-bar__spacer" aria-hidden="true"></span>' +
       '<button class="btn btn-primary" type="button" id="restoreDo" disabled>预览确认后覆盖仓库</button>' +
       "</div>";
 
@@ -901,10 +947,11 @@
     panel.innerHTML =
       '<div class="section-title">调试日志</div>' +
       '<p class="muted" style="margin:0 0 12px;">记录本机浏览器最近约 6 小时内的前台/数据加载步骤（仅存于 localStorage，不含 Token）。复现「卡在加载中」后打开本页，导出 JSON 发给维护者排查。</p>' +
-      '<div class="row" style="margin-bottom:10px;flex-wrap:wrap;">' +
-      '<button type="button" class="btn btn-primary" id="dbgRefresh">刷新列表</button>' +
+      '<div class="admin-action-bar admin-action-bar--tight" style="flex-wrap:wrap;">' +
       '<button type="button" class="btn" id="dbgExport">导出 JSON</button>' +
       '<button type="button" class="btn" id="dbgClear">清空日志</button>' +
+      '<span class="admin-action-bar__spacer" aria-hidden="true"></span>' +
+      '<button type="button" class="btn btn-primary" id="dbgRefresh">刷新列表</button>' +
       "</div>" +
       '<pre class="panel" id="dbgPre" style="max-height:480px;overflow:auto;font-size:12px;line-height:1.45;margin:0;"></pre>';
 
