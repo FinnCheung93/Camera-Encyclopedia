@@ -54,13 +54,6 @@
           "isFilter": false
         },
         {
-          "fieldId": "sensorFormat",
-          "fieldName": "画幅",
-          "fieldType": "text",
-          "required": false,
-          "isFilter": true
-        },
-        {
           "fieldId": "lens",
           "fieldName": "镜头",
           "fieldType": "text",
