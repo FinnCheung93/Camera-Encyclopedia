@@ -468,12 +468,24 @@
 
   async function boot() {
     var params = AppUtils.parseParams();
+    try {
+      if (typeof console !== "undefined" && console.info) {
+        console.info("[Camera-Encyclopedia][list-page] boot", {
+          href: location.href,
+          category: params.category || "",
+        });
+      }
+    } catch (e) {}
     if (typeof DebugLog !== "undefined" && DebugLog.add) {
       DebugLog.add("info", "list-page", "boot 开始", {
         path: location.pathname,
         search: location.search,
         category: params.category || "",
       });
+    } else if (typeof console !== "undefined" && console.warn) {
+      console.warn(
+        "[Camera-Encyclopedia] DebugLog 未定义：请确认已部署 js/debug-log.js，且 list.html 中该脚本在 list-page.js 之前加载。"
+      );
     }
     try {
       var db = await GithubStorage.loadJson();
