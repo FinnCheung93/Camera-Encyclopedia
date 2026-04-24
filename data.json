@@ -119,6 +119,13 @@
           "fieldType": "text",
           "required": false,
           "isFilter": false
+        },
+        {
+          "fieldId": "weight",
+          "fieldName": "重量",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
         }
       ]
     },
