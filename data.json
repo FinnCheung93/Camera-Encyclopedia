@@ -80,6 +80,13 @@
           "fieldType": "text",
           "required": false,
           "isFilter": false
+        },
+        {
+          "fieldId": "macro",
+          "fieldName": "微距",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
         }
       ]
     },
