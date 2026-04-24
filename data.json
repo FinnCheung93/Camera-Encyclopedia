@@ -27,7 +27,7 @@
         },
         {
           "fieldId": "model",
-          "fieldName": "机型全称",
+          "fieldName": "型号",
           "fieldType": "text",
           "required": true,
           "isFilter": true
