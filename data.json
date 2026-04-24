@@ -126,6 +126,13 @@
           "fieldType": "text",
           "required": false,
           "isFilter": false
+        },
+        {
+          "fieldId": "series",
+          "fieldName": "系列",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
         }
       ]
     },
