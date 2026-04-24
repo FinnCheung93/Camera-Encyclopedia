@@ -1,0 +1,38 @@
+---
+description: 相机图鉴（Camera-Encyclopedia）仓库专用约定与上下文
+alwaysApply: true
+---
+
+# Camera-Encyclopedia 项目规则
+
+## 栈与部署
+
+- 静态站：**原生 HTML / CSS / JS**，无构建步骤；可部署在 **GitHub Pages**（路径常含 `/Camera-Encyclopedia/`）。
+- 数据：根目录 **`data.json`**；仓库与分支等在 **`config.js`** 的 `APP_CONFIG.github`；读写走 **`js/github-storage.js`**（`GithubStorage.loadJson` / `saveJson`）。
+- 本机 PAT：用 **`setup-token.html`** 写入 localStorage，勿把 Token 写进会提交的 `config.js`。
+
+## 主要入口
+
+| 区域 | 文件 |
+|------|------|
+| 首页 | `index.html` + `js/index-page.js` |
+| 分类列表 | `list.html` + `js/list-page.js` |
+| 后台 | `admin.html` + `js/admin-app.js` |
+| 顶栏 | `js/nav.js`（`SiteNav`） |
+| 调试日志 | `js/debug-log.js`；列表页可用 URL 参数 `ce_debug_log=1` 导出 |
+
+## 前台与后台联动（用户明确要求）
+
+- 当用户提出 **前台页面**（首页、列表、导航、样式等）的调整时，助手须 **同步检视后台**（`admin.html` / `js/admin-app.js`、与前台共用的 `data.json` 结构、`fieldConfig`、`nav.js`、`utils.js` 等）是否存在 **关联**（同一字段、同一配置项、同一文案或校验逻辑）。
+- **若有关联**：在同一轮或后续提交中做出 **相应后台调整**（表单、字段表、校验、提示文案、导入模板等），避免前台与后台行为不一致；若无关联则无需硬改后台。
+
+## 协作习惯
+
+- 与用户交流使用 **简体中文**。
+- 改动保持 **最小必要范围**；不顺带大段重构无关文件。
+- 改 `list-page.js` 后若需绕过缓存，可在 **`list.html`** 里给脚本 URL 加查询参数版本号。
+
+## 数据模型注意
+
+- 相机顶层字段见 **`AppUtils.ROOT_FIELD_IDS`**（`js/utils.js`）；其余进 **`cameras[].specs`**。
+- 后台字段顺序：表格左侧 **≈** 拖拽；**保存** 类按钮为写入仓库的主操作。
