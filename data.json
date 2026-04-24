@@ -91,6 +91,13 @@
             "有",
             "无"
           ]
+        },
+        {
+          "fieldId": "shutter",
+          "fieldName": "快门范围",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
         }
       ]
     },
