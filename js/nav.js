@@ -39,7 +39,6 @@
       (current === "home" ? "active" : "") +
       '" href="index.html">首页</a>' +
       links +
-      '<a href="admin-login.html">后台</a>' +
       "</nav>" +
       '<button class="nav-toggle" type="button" aria-label="打开菜单">菜单</button>' +
       "</div>" +
@@ -61,7 +60,6 @@
           );
         })
         .join("") +
-      '<a href="admin-login.html">后台</a>' +
       "</div>" +
       "</header>"
     );

@@ -16,16 +16,16 @@
         </div>
       </div>
     </main>
-    <footer class="footer" id="footer"></footer>
-    <div class="footer" id="listDebugDock" aria-label="调试工具">
-      <button type="button" class="btn btn-ghost" id="btnListDbgExport" style="font-size:13px">
-        导出本页调试日志
-      </button>
-      <span class="muted" style="font-size:12px;margin-left:10px">卡住时先点这里下载 JSON，无需先进后台</span>
-    </div>
     <script src="config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/debug-log.js"></script>
+    <script>
+      try {
+        if (window.DebugLog && DebugLog.exportFromUrlIfRequested) {
+          DebugLog.exportFromUrlIfRequested();
+        }
+      } catch (e) {}
+    </script>
     <script>
       try {
         if (window.DebugLog && DebugLog.add) {
@@ -43,38 +43,6 @@
     </script>
     <script src="js/github-storage.js"></script>
     <script src="js/nav.js"></script>
-    <script src="js/list-page.js?v=20260424-syntax"></script>
-    <script>
-      (function () {
-        var btn = document.getElementById("btnListDbgExport");
-        if (!btn) return;
-        btn.addEventListener("click", function () {
-          if (typeof DebugLog === "undefined" || !DebugLog.exportJson) {
-            window.alert(
-              "未加载 debug-log.js（或脚本顺序错误）。请在本页按 Ctrl+F5 强制刷新后再试；若仍不行，请打开开发者工具(F12) → Network 确认 js/debug-log.js 是否为 200。"
-            );
-            return;
-          }
-          try {
-            var text = DebugLog.exportJson();
-            var blob = new Blob([text], { type: "application/json;charset=utf-8" });
-            var a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = "camera-ency-debug-log.json";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            setTimeout(function () {
-              URL.revokeObjectURL(a.href);
-            }, 2000);
-            if (typeof AppUtils !== "undefined" && AppUtils.toast) {
-              AppUtils.toast("已导出 camera-ency-debug-log.json");
-            }
-          } catch (e) {
-            window.alert("导出失败：" + (e.message || String(e)));
-          }
-        });
-      })();
-    </script>
+    <script src="js/list-page.js?v=20260424-ui"></script>
   </body>
 </html>

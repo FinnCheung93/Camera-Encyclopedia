@@ -86,10 +86,43 @@
     );
   }
 
+  /** 若地址栏含 ce_debug_log=1（或 true/yes/export），则下载 JSON 并从 URL 去掉该参数，避免刷新重复下载。 */
+  function exportFromUrlIfRequested() {
+    try {
+      if (typeof location === "undefined" || !location.search) return;
+      var q = new URLSearchParams(location.search);
+      var raw = (q.get("ce_debug_log") || "").trim().toLowerCase();
+      if (!raw) return;
+      if (raw !== "1" && raw !== "true" && raw !== "yes" && raw !== "export") return;
+      if (typeof document === "undefined" || !document.body) return;
+      var text = exportJson();
+      var blob = new Blob([text], { type: "application/json;charset=utf-8" });
+      var a = document.createElement("a");
+      var url = URL.createObjectURL(blob);
+      a.href = url;
+      a.download = "camera-ency-debug-log.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (e) {}
+      }, 2000);
+      q.delete("ce_debug_log");
+      var qs = q.toString();
+      var next = location.pathname + (qs ? "?" + qs : "") + (location.hash || "");
+      if (typeof history !== "undefined" && history.replaceState) {
+        history.replaceState(null, "", next);
+      }
+    } catch (e) {}
+  }
+
   global.DebugLog = {
     add: add,
     getRecent: getRecent,
     clear: clear,
     exportJson: exportJson,
+    exportFromUrlIfRequested: exportFromUrlIfRequested,
   };
 })(window);

@@ -19,6 +19,13 @@
     <script src="config.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/debug-log.js"></script>
+    <script>
+      try {
+        if (window.DebugLog && DebugLog.exportFromUrlIfRequested) {
+          DebugLog.exportFromUrlIfRequested();
+        }
+      } catch (e) {}
+    </script>
     <script src="js/github-storage.js"></script>
     <script src="js/index-page.js"></script>
   </body>

@@ -20,7 +20,6 @@
   } catch (e1) {}
 
   var app = AppUtils.$("#app");
-  var footer = AppUtils.$("#footer");
   var navMount = AppUtils.$("#navMount");
 
   function getCategory(db, id) {
@@ -471,18 +470,6 @@
 
     wire();
     paint();
-
-    if (footer) {
-      try {
-        var siteTime = new Date(document.lastModified).toISOString().slice(0, 10);
-        footer.innerHTML =
-          "网站文件更新时间：" +
-          AppUtils.escapeHtml(siteTime) +
-          ' · <a href="setup-token.html">PAT 本机设置</a>';
-      } catch (e) {
-        footer.textContent = "";
-      }
-    }
   }
 
   async function boot() {
