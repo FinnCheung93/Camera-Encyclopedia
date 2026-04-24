@@ -1,6 +1,9 @@
 /** 通用分类列表：筛选 / 排序 / 卡片表格视图 / 懒加载 */
 (function () {
   try {
+    window.__CE_LIST_PAGE_IIFE = "enter";
+  } catch (e0) {}
+  try {
     if (typeof DebugLog !== "undefined" && DebugLog.add) {
       var p = "";
       try {
@@ -12,6 +15,9 @@
       });
     }
   } catch (e) {}
+  try {
+    window.__CE_LIST_PAGE_IIFE = "after-open-log";
+  } catch (e1) {}
 
   var app = AppUtils.$("#app");
   var footer = AppUtils.$("#footer");
@@ -480,6 +486,9 @@
   }
 
   async function boot() {
+    try {
+      window.__CE_LIST_PAGE_BOOT = "start";
+    } catch (e0) {}
     var params = AppUtils.parseParams();
     try {
       if (typeof console !== "undefined" && console.info) {
