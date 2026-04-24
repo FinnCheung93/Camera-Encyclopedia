@@ -1,6 +1,7 @@
 /** 首页：站点介绍 + 分类入口（居中简化布局） */
 (function () {
   var app = AppUtils.$("#app");
+  var footer = AppUtils.$("#footer");
 
   function render(db) {
     var site = db.siteConfig || {};
@@ -52,6 +53,16 @@
       "</div>" +
       "</div>" +
       "</div>";
+
+    var siteTime = "";
+    try {
+      siteTime = new Date(document.lastModified).toISOString().slice(0, 10);
+    } catch (err) {}
+    var author = (site.author || "").trim();
+    var lines =
+      '<div class="home-footer-line">最近更新：' + AppUtils.escapeHtml(siteTime || "—") + "</div>" +
+      (author ? '<div class="home-footer-line">' + AppUtils.escapeHtml(author) + "</div>" : "");
+    if (footer) footer.innerHTML = lines;
   }
 
   async function boot() {
@@ -60,6 +71,7 @@
       render(db);
     } catch (e) {
       app.innerHTML = '<div class="empty">加载失败：' + AppUtils.escapeHtml(e.message || String(e)) + "</div>";
+      if (footer) footer.innerHTML = "";
       AppUtils.toast(e.message || String(e), "error");
     }
   }
