@@ -111,13 +111,6 @@
           "isFilter": false
         }
       ]
-    },
-    {
-      "categoryId": "c-moclivxexcs7",
-      "categoryName": "test",
-      "sort": 3,
-      "status": "enable",
-      "fieldConfig": []
     }
   ],
   "cameraData": [
