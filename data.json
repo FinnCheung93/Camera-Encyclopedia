@@ -26,6 +26,13 @@
           "isFilter": true
         },
         {
+          "fieldId": "series",
+          "fieldName": "系列",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
           "fieldId": "model",
           "fieldName": "型号",
           "fieldType": "text",
@@ -33,25 +40,18 @@
           "isFilter": true
         },
         {
-          "fieldId": "year",
-          "fieldName": "发布年份",
-          "fieldType": "number",
-          "required": true,
-          "isFilter": true
-        },
-        {
-          "fieldId": "image",
-          "fieldName": "机型图片URL",
+          "fieldId": "alias",
+          "fieldName": "别称",
           "fieldType": "text",
           "required": false,
           "isFilter": false
         },
         {
-          "fieldId": "remark",
-          "fieldName": "个人备注",
-          "fieldType": "textarea",
-          "required": false,
-          "isFilter": false
+          "fieldId": "year",
+          "fieldName": "发布年份",
+          "fieldType": "number",
+          "required": true,
+          "isFilter": true
         },
         {
           "fieldId": "lens",
@@ -70,13 +70,6 @@
         {
           "fieldId": "aperture",
           "fieldName": "光圈",
-          "fieldType": "text",
-          "required": false,
-          "isFilter": false
-        },
-        {
-          "fieldId": "alias",
-          "fieldName": "别称",
           "fieldType": "text",
           "required": false,
           "isFilter": false
@@ -128,9 +121,16 @@
           "isFilter": false
         },
         {
-          "fieldId": "series",
-          "fieldName": "系列",
+          "fieldId": "image",
+          "fieldName": "机型图片URL",
           "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "remark",
+          "fieldName": "个人备注",
+          "fieldType": "textarea",
           "required": false,
           "isFilter": false
         }
