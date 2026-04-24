@@ -39,7 +39,6 @@
     brand: true,
     model: true,
     year: true,
-    secondCategory: true,
     image: true,
     remark: true,
   };

@@ -2,7 +2,6 @@
   {
     "model": "机型全称",
     "year": 1998,
-    "secondCategory": "不可换镜头",
     "image": "https://example.com/image.jpg",
     "remark": "个人备注",
     "specs": {

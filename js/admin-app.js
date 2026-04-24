@@ -238,7 +238,6 @@
         categoryName: name,
         sort: maxSort + 1,
         status: "enable",
-        secondCategory: [],
         fieldConfig: [],
       });
       AppUtils.$("#newCatName").value = "";
@@ -360,10 +359,6 @@
       opts +
       "</select>" +
       "</div>" +
-      '<div class="form-field" style="margin-top:10px;">' +
-      "<label>二级品类（每行一个）</label>" +
-      '<textarea class="textarea" id="secondLines"></textarea>' +
-      "</div>" +
       '<div class="muted" style="margin:8px 0;">字段配置表（fieldId 创建后勿随意修改，以免影响历史数据）</div>' +
       '<div class="table-wrap" style="margin-bottom:10px;"><table class="data-table"><thead><tr><th>fieldId</th><th>名称</th><th>类型</th><th>必填</th><th>筛选</th><th>选项(逗号)</th><th></th></tr></thead><tbody id="fieldRows"></tbody></table></div>' +
       '<div class="row">' +
@@ -381,7 +376,6 @@
     function paintRows() {
       var cat = currentCat();
       if (!cat) return;
-      AppUtils.$("#secondLines").value = (cat.secondCategory || []).join("\n");
       var body = AppUtils.$("#fieldRows");
       body.innerHTML = (cat.fieldConfig || [])
         .map(function (f, idx) {
@@ -470,10 +464,6 @@
     AppUtils.$("#saveFields").addEventListener("click", async function () {
       var cat = currentCat();
       if (!cat) return;
-      var lines = AppUtils.$("#secondLines").value.split(/\r?\n/).map(function (x) {
-        return x.trim();
-      }).filter(Boolean);
-      cat.secondCategory = lines;
 
       var rows = AppUtils.$all("#fieldRows tr");
       var next = [];

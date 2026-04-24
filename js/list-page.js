@@ -69,7 +69,6 @@
   }
 
   function matchFilters(cam, cat, state) {
-    if (state.second.size && !state.second.has(String(cam.secondCategory || ""))) return false;
     if (state.brands.size && !state.brands.has(String(cam.brand || ""))) return false;
 
     for (var i = 0; i < cat.fieldConfig.length; i++) {
@@ -105,7 +104,7 @@
   function tagsForCard(cam, cat) {
     var tags = [];
     cat.fieldConfig.forEach(function (f) {
-      if (["brand", "model", "year", "secondCategory", "image", "remark"].indexOf(f.fieldId) >= 0) return;
+      if (["brand", "model", "year", "image", "remark"].indexOf(f.fieldId) >= 0) return;
       var v = AppUtils.getCamField(cam, f.fieldId);
       if (v === undefined || v === null || v === "") return;
       tags.push('<span class="tag">' + AppUtils.escapeHtml(f.fieldName) + "：" + AppUtils.escapeHtml(String(v)) + "</span>");
@@ -136,8 +135,6 @@
       "</strong></div>" +
       '<div class="muted">发布年份：' +
       AppUtils.escapeHtml(String(cam.year || "")) +
-      " · 二级品类：" +
-      AppUtils.escapeHtml(String(cam.secondCategory || "")) +
       "</div>" +
       '<div class="tag-row">' +
       tagsForCard(cam, cat) +
@@ -169,12 +166,6 @@
     if (!Array.isArray(cat.fieldConfig)) {
       cat.fieldConfig = [];
     }
-    var secondCategoryValues = Array.isArray(cat.secondCategory)
-      ? cat.secondCategory
-      : cat.secondCategory != null && String(cat.secondCategory).trim() !== ""
-      ? [String(cat.secondCategory).trim()]
-      : [];
-
     if (typeof SiteNav !== "undefined" && SiteNav.mountNav) {
       SiteNav.mountNav(navMount, { db: db, current: "cat-" + cat.categoryId });
     }
@@ -188,7 +179,6 @@
     var state = {
       view: defaultView,
       sort: "yearDesc",
-      second: new Set(),
       brands: new Set(),
       numRange: {},
       selectSet: {},
@@ -244,11 +234,6 @@
     function filterBlocks() {
       var blocks = [];
       blocks.push(
-        '<div class="filter-block"><h4>二级品类（多选）</h4><div class="chips" id="chip-second">' +
-          chipsHtml("second", secondCategoryValues, "second") +
-          "</div></div>"
-      );
-      blocks.push(
         '<div class="filter-block"><h4>品牌（多选）</h4><div class="chips" id="chip-brand">' +
           chipsHtml("brands", brandsInList(baseList), "brands") +
           "</div></div>"
@@ -256,7 +241,6 @@
 
       cat.fieldConfig.forEach(function (f) {
         if (!f.isFilter) return;
-        if (f.fieldId === "secondCategory") return;
         if (f.fieldType === "number") {
           var r = state.numRange[f.fieldId];
           blocks.push(
@@ -301,7 +285,6 @@
 
     function paint() {
       var filterState = {
-        second: state.second,
         brands: state.brands,
         numRange: state.numRange,
         selectSet: state.selectSet,
@@ -398,7 +381,6 @@
         paint();
       });
       AppUtils.$("#resetFilters").addEventListener("click", function () {
-        state.second = new Set();
         state.brands = new Set();
         cat.fieldConfig.forEach(function (f) {
           if (!f.isFilter) return;
@@ -418,15 +400,6 @@
         paint();
       });
 
-      AppUtils.$all("#chip-second .chip").forEach(function (el) {
-        el.addEventListener("click", function () {
-          var v = el.getAttribute("data-val");
-          if (state.second.has(v)) state.second.delete(v);
-          else state.second.add(v);
-          el.classList.toggle("on");
-          paint();
-        });
-      });
       AppUtils.$all("#chip-brand .chip").forEach(function (el) {
         el.addEventListener("click", function () {
           var v = el.getAttribute("data-val");
