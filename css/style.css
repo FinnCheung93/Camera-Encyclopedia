@@ -825,6 +825,9 @@ table.data-table {
   padding: 0 6px;
   user-select: none;
 }
+.drag-handle[draggable="true"] {
+  -webkit-user-drag: element;
+}
 .drag-handle:active {
   cursor: grabbing;
 }

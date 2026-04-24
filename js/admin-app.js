@@ -183,10 +183,10 @@
     var rows = sortedCategories()
       .map(function (c, idx) {
         return (
-          "<tr draggable=\"true\" data-id=\"" +
+          "<tr data-id=\"" +
           AppUtils.escapeHtml(c.categoryId) +
           "\">" +
-          "<td><span class=\"drag-handle\" aria-label=\"拖动排序\" title=\"拖动排序\">≡</span> " +
+          "<td><span class=\"drag-handle\" draggable=\"true\" aria-label=\"拖动排序\" title=\"拖动排序\">≡</span> " +
           AppUtils.escapeHtml(c.categoryName) +
           "</td>" +
           "<td class=\"muted\">" +
@@ -313,46 +313,49 @@
   function wireDragCategories() {
     var tbody = AppUtils.$("#catBody");
     if (!tbody) return;
-    AppUtils.$all("tr[draggable]", tbody).forEach(function (tr) {
-      tr.addEventListener("dragstart", function (e) {
-        if (!e.target.closest(".drag-handle")) {
-          e.preventDefault();
-          return;
-        }
-        dragCatId = tr.getAttribute("data-id");
-        try {
-          e.dataTransfer.setData("text/plain", "cat-row");
-          e.dataTransfer.effectAllowed = "move";
-        } catch (err) {}
+    /** draggable 在 tr 上时 dragstart 的 target 是 tr，closest('.drag-handle') 永远为 null；改由手柄 span 发起拖拽并委托到 tbody */
+    tbody.addEventListener("dragstart", function (e) {
+      var h = e.target.closest(".drag-handle");
+      if (!h || !tbody.contains(h)) return;
+      var tr = h.closest("tr");
+      if (!tr || tr.parentElement !== tbody) return;
+      dragCatId = tr.getAttribute("data-id");
+      try {
+        e.dataTransfer.setData("text/plain", "cat-row");
+        e.dataTransfer.effectAllowed = "move";
+      } catch (err) {}
+    });
+    tbody.addEventListener("dragover", function (e) {
+      var tr = e.target.closest("tr");
+      if (!tr || tr.parentElement !== tbody) return;
+      e.preventDefault();
+      try {
+        e.dataTransfer.dropEffect = "move";
+      } catch (err2) {}
+    });
+    tbody.addEventListener("drop", function (e) {
+      var tr = e.target.closest("tr");
+      if (!tr || tr.parentElement !== tbody) return;
+      e.preventDefault();
+      var targetId = tr.getAttribute("data-id");
+      if (!dragCatId || !targetId || dragCatId === targetId) return;
+      var list = sortedCategories();
+      var from = list.findIndex(function (x) {
+        return x.categoryId === dragCatId;
       });
-      tr.addEventListener("dragover", function (e) {
-        e.preventDefault();
-        try {
-          e.dataTransfer.dropEffect = "move";
-        } catch (err2) {}
+      var to = list.findIndex(function (x) {
+        return x.categoryId === targetId;
       });
-      tr.addEventListener("drop", function (e) {
-        e.preventDefault();
-        var targetId = tr.getAttribute("data-id");
-        if (!dragCatId || !targetId || dragCatId === targetId) return;
-        var list = sortedCategories();
-        var from = list.findIndex(function (x) {
-          return x.categoryId === dragCatId;
-        });
-        var to = list.findIndex(function (x) {
-          return x.categoryId === targetId;
-        });
-        if (from < 0 || to < 0) return;
-        var moved = list.splice(from, 1)[0];
-        list.splice(to, 0, moved);
-        list.forEach(function (c, i) {
-          c.sort = i + 1;
-        });
-        renderAll();
+      if (from < 0 || to < 0) return;
+      var moved = list.splice(from, 1)[0];
+      list.splice(to, 0, moved);
+      list.forEach(function (c, i) {
+        c.sort = i + 1;
       });
-      tr.addEventListener("dragend", function () {
-        dragCatId = null;
-      });
+      renderAll();
+    });
+    tbody.addEventListener("dragend", function () {
+      dragCatId = null;
     });
   }
 
@@ -392,44 +395,46 @@
       });
     }
 
-    function wireFieldRowDrag() {
+    function wireFieldRowDragDelegated() {
       var tbody = AppUtils.$("#fieldRows");
       if (!tbody) return;
-      AppUtils.$all("tr[data-field-row]", tbody).forEach(function (tr) {
-        tr.addEventListener("dragstart", function (e) {
-          if (!e.target.closest(".drag-handle")) {
-            e.preventDefault();
-            return;
-          }
-          dragFieldRowTr = tr;
-          try {
-            e.dataTransfer.setData("text/plain", "field-row");
-            e.dataTransfer.effectAllowed = "move";
-          } catch (err) {}
-        });
-        tr.addEventListener("dragover", function (e) {
-          e.preventDefault();
-          try {
-            e.dataTransfer.dropEffect = "move";
-          } catch (err2) {}
-        });
-        tr.addEventListener("drop", function (e) {
-          e.preventDefault();
-          var catInner = currentCat();
-          if (!catInner || !catInner.fieldConfig || !dragFieldRowTr) return;
-          if (dragFieldRowTr === tr) return;
-          var rowList = AppUtils.$all("#fieldRows tr");
-          var from = rowList.indexOf(dragFieldRowTr);
-          var to = rowList.indexOf(tr);
-          if (from < 0 || to < 0) return;
-          var arr = catInner.fieldConfig;
-          var moved = arr.splice(from, 1)[0];
-          arr.splice(to, 0, moved);
-          paintRows();
-        });
-        tr.addEventListener("dragend", function () {
-          dragFieldRowTr = null;
-        });
+      tbody.addEventListener("dragstart", function (e) {
+        var h = e.target.closest(".drag-handle");
+        if (!h || !tbody.contains(h)) return;
+        var tr = h.closest("tr");
+        if (!tr || tr.parentElement !== tbody) return;
+        dragFieldRowTr = tr;
+        try {
+          e.dataTransfer.setData("text/plain", "field-row");
+          e.dataTransfer.effectAllowed = "move";
+        } catch (err) {}
+      });
+      tbody.addEventListener("dragover", function (e) {
+        var tr = e.target.closest("tr");
+        if (!tr || tr.parentElement !== tbody) return;
+        e.preventDefault();
+        try {
+          e.dataTransfer.dropEffect = "move";
+        } catch (err2) {}
+      });
+      tbody.addEventListener("drop", function (e) {
+        var tr = e.target.closest("tr");
+        if (!tr || tr.parentElement !== tbody) return;
+        e.preventDefault();
+        var catInner = currentCat();
+        if (!catInner || !catInner.fieldConfig || !dragFieldRowTr) return;
+        if (dragFieldRowTr === tr) return;
+        var rowList = AppUtils.$all("#fieldRows tr");
+        var from = rowList.indexOf(dragFieldRowTr);
+        var to = rowList.indexOf(tr);
+        if (from < 0 || to < 0) return;
+        var arr = catInner.fieldConfig;
+        var moved = arr.splice(from, 1)[0];
+        arr.splice(to, 0, moved);
+        paintRows();
+      });
+      tbody.addEventListener("dragend", function () {
+        dragFieldRowTr = null;
       });
     }
 
@@ -440,8 +445,8 @@
       body.innerHTML = (cat.fieldConfig || [])
         .map(function (f) {
           return (
-            '<tr draggable="true" data-field-row="1">' +
-            '<td class="td-drag"><span class="drag-handle" aria-label="拖动排序" title="拖动排序">≡</span></td>' +
+            "<tr>" +
+            '<td class="td-drag"><span class="drag-handle" draggable="true" aria-label="拖动排序" title="拖动排序">≡</span></td>' +
             '<td><input class="input" data-k="fieldId" style="max-width:140px" value="' +
             AppUtils.escapeHtml(f.fieldId) +
             "\" /></td>" +
@@ -488,7 +493,6 @@
           paintRows();
         });
       });
-      wireFieldRowDrag();
     }
 
     AppUtils.$("#fieldCat").addEventListener("change", paintRows);
@@ -544,6 +548,7 @@
     });
 
     paintRows();
+    wireFieldRowDragDelegated();
   }
 
   function camDraftValue(data, f) {
