@@ -27,7 +27,7 @@
         },
         {
           "fieldId": "model",
-          "fieldName": "机型全称",
+          "fieldName": "型号",
           "fieldType": "text",
           "required": true,
           "isFilter": true
@@ -54,18 +54,85 @@
           "isFilter": false
         },
         {
-          "fieldId": "sensorFormat",
-          "fieldName": "画幅",
-          "fieldType": "text",
-          "required": false,
-          "isFilter": true
-        },
-        {
           "fieldId": "lens",
           "fieldName": "镜头",
           "fieldType": "text",
           "required": false,
           "isFilter": true
+        },
+        {
+          "fieldId": "focal",
+          "fieldName": "焦段",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "aperture",
+          "fieldName": "光圈",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "alias",
+          "fieldName": "别称",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "macro",
+          "fieldName": "微距",
+          "fieldType": "select",
+          "required": false,
+          "isFilter": false,
+          "options": [
+            "有",
+            "无"
+          ]
+        },
+        {
+          "fieldId": "shutter",
+          "fieldName": "快门范围",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "iso",
+          "fieldName": "iSO 范围",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "battery",
+          "fieldName": "电池型号",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "size",
+          "fieldName": "尺寸",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "weight",
+          "fieldName": "重量",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
+          "fieldId": "series",
+          "fieldName": "系列",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
         }
       ]
     },
