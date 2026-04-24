@@ -146,7 +146,18 @@
       return;
     }
 
-    SiteNav.mountNav(navMount, { db: db, current: "cat-" + cat.categoryId });
+    if (!Array.isArray(cat.fieldConfig)) {
+      cat.fieldConfig = [];
+    }
+    var secondCategoryValues = Array.isArray(cat.secondCategory)
+      ? cat.secondCategory
+      : cat.secondCategory != null && String(cat.secondCategory).trim() !== ""
+      ? [String(cat.secondCategory).trim()]
+      : [];
+
+    if (typeof SiteNav !== "undefined" && SiteNav.mountNav) {
+      SiteNav.mountNav(navMount, { db: db, current: "cat-" + cat.categoryId });
+    }
 
     var baseList = camerasInCategory(db, cat.categoryId);
     var site = db.siteConfig || {};
@@ -212,7 +223,7 @@
       var blocks = [];
       blocks.push(
         '<div class="filter-block"><h4>二级品类（多选）</h4><div class="chips" id="chip-second">' +
-          chipsHtml("second", cat.secondCategory || [], "second") +
+          chipsHtml("second", secondCategoryValues, "second") +
           "</div></div>"
       );
       blocks.push(
@@ -438,14 +449,16 @@
     wire();
     paint();
 
-    try {
-      var siteTime = new Date(document.lastModified).toISOString().slice(0, 10);
-      footer.innerHTML =
-        "网站文件更新时间：" +
-        AppUtils.escapeHtml(siteTime) +
-        ' · <a href="setup-token.html">PAT 本机设置</a>';
-    } catch (e) {
-      footer.textContent = "";
+    if (footer) {
+      try {
+        var siteTime = new Date(document.lastModified).toISOString().slice(0, 10);
+        footer.innerHTML =
+          "网站文件更新时间：" +
+          AppUtils.escapeHtml(siteTime) +
+          ' · <a href="setup-token.html">PAT 本机设置</a>';
+      } catch (e) {
+        footer.textContent = "";
+      }
     }
   }
 

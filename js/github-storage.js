@@ -68,11 +68,39 @@
     );
   }
 
+  /** 避免 fetch 长时间挂起导致页面一直停在「加载中」 */
+  async function fetchWithTimeout(url, init, timeoutMs) {
+    var ms = timeoutMs || 25000;
+    if (typeof AbortController === "undefined") {
+      return await fetch(url, init || {});
+    }
+    var controller = new AbortController();
+    var timer = setTimeout(function () {
+      try {
+        controller.abort();
+      } catch (e) {}
+    }, ms);
+    try {
+      return await fetch(url, Object.assign({}, init || {}, { signal: controller.signal }));
+    } catch (e) {
+      if (e && e.name === "AbortError") {
+        throw new Error(
+          "请求 GitHub 超时（约 " +
+            Math.round(ms / 1000) +
+            " 秒内无响应），请检查网络或对 api.github.com 的访问。"
+        );
+      }
+      throw e;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
   async function loadContentsOnce(useToken) {
     var g = cfg();
     var url =
       apiUrl("contents/" + encodeURIComponent(g.dataPath)) + "?ref=" + encodeURIComponent(g.branch);
-    var res = await fetch(url, { headers: apiHeaders(!!useToken) });
+    var res = await fetchWithTimeout(url, { headers: apiHeaders(!!useToken) }, 25000);
     var text = await res.text();
     return { res: res, text: text };
   }
@@ -80,7 +108,7 @@
   async function loadJson() {
     var g = cfg();
     if (g.useLocal) {
-      var res = await fetch("./data.json", { cache: "no-store" });
+      var res = await fetchWithTimeout("./data.json", { cache: "no-store" }, 25000);
       if (!res.ok) throw new Error("无法读取本地 data.json（HTTP " + res.status + "）");
       shaCache = null;
       return await res.json();
@@ -138,11 +166,15 @@
       branch: g.branch,
     };
     if (shaCache) body.sha = shaCache;
-    var res = await fetch(url, {
-      method: "PUT",
-      headers: Object.assign({ "Content-Type": "application/json" }, authHeaders()),
-      body: JSON.stringify(body),
-    });
+    var res = await fetchWithTimeout(
+      url,
+      {
+        method: "PUT",
+        headers: Object.assign({ "Content-Type": "application/json" }, authHeaders()),
+        body: JSON.stringify(body),
+      },
+      60000
+    );
     var text = await res.text();
     if (!res.ok) {
       var errMsg = text;

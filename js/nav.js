@@ -68,6 +68,7 @@
   }
 
   function mountNav(container, opts) {
+    if (!container) return;
     container.innerHTML = renderNav(opts);
     var btn = AppUtils.$(".nav-toggle", container);
     var mobile = AppUtils.$("#navMobile", container);
