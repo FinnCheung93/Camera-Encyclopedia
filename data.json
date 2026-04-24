@@ -61,7 +61,7 @@
           "isFilter": true
         },
         {
-          "fieldId": "focalLength",
+          "fieldId": "focal",
           "fieldName": "焦段",
           "fieldType": "text",
           "required": false,
