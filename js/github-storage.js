@@ -113,6 +113,35 @@
     return { res: res, text: text };
   }
 
+  /** 公开仓库只读：绕过 Contents API（部分地区/网络下匿名 Contents 会 403，raw 仍可读） */
+  function rawDataJsonUrl(g) {
+    var path = String(g.dataPath || "data.json").replace(/^\/+/, "");
+    var parts = path.split("/").filter(Boolean).map(function (p) {
+      return encodeURIComponent(p);
+    });
+    return (
+      "https://raw.githubusercontent.com/" +
+      encodeURIComponent(g.owner) +
+      "/" +
+      encodeURIComponent(g.repo) +
+      "/" +
+      encodeURIComponent(g.branch) +
+      "/" +
+      parts.join("/")
+    );
+  }
+
+  async function loadJsonViaRawPublic(g) {
+    var url = rawDataJsonUrl(g);
+    logDbg("info", "尝试 raw.githubusercontent.com", { url: url });
+    var res = await fetchWithTimeout(url, { cache: "no-store" }, 25000);
+    if (!res.ok) {
+      throw new Error("raw 直链 HTTP " + res.status);
+    }
+    shaCache = null;
+    return await res.json();
+  }
+
   async function loadJson() {
     var g = cfg();
     var pagePath = "";
@@ -172,6 +201,18 @@
         text = second.text;
       }
       if (!res.ok) {
+        if (res.status === 403 || res.status === 404) {
+          try {
+            var rawData = await loadJsonViaRawPublic(g);
+            logDbg("info", "loadJson 成功(raw 兜底)", {
+              categories: (rawData.categoryConfig || []).length,
+              cameras: (rawData.cameraData || []).length,
+            });
+            return rawData;
+          } catch (rawErr) {
+            logDbg("info", "raw 兜底未成功: " + (rawErr.message || String(rawErr)));
+          }
+        }
         var errMsg = text;
         try {
           errMsg = JSON.parse(text).message || text;
@@ -182,7 +223,7 @@
         }
         if ((res.status === 404 || res.status === 403) && !g.token) {
           errMsg +=
-            " 若为私有仓库，匿名无法读取 data.json：请把仓库改为 Public，或在 setup-token.html 配置 PAT（仅你自己浏览器需要，访客仍无法在无 Token 下读私有库）。";
+            " 已尝试 raw.githubusercontent.com 直链仍失败时：请确认仓库为 Public 且分支上存在 data.json；私有库仅本机配置 PAT 可读。";
         }
         throw new Error("读取仓库失败：" + errMsg);
       }
