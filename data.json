@@ -105,6 +105,13 @@
           "fieldType": "text",
           "required": false,
           "isFilter": false
+        },
+        {
+          "fieldId": "battery",
+          "fieldName": "电池型号",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
         }
       ]
     },
