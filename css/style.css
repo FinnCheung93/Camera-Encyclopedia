@@ -156,15 +156,19 @@ img {
   overflow: hidden;
 }
 
-/* 首页：单列水平居中，垂直略偏上（舒适视区） */
+/* 首页：水平居中；纵向须用 column，否则 align-items:center 会把整块垂直居中 */
 .container--home .home-shell {
   flex: 1;
   min-height: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  padding: clamp(28px, 11dvh, 96px) clamp(16px, 4vw, 24px) clamp(12px, 3dvh, 28px);
+  padding-top: max(env(safe-area-inset-top, 0px), clamp(16px, 20dvh, 280px));
+  padding-left: clamp(16px, 4vw, 24px);
+  padding-right: clamp(16px, 4vw, 24px);
+  padding-bottom: clamp(8px, 2dvh, 20px);
   overflow: hidden;
 }
 

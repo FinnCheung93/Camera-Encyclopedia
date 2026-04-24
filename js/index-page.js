@@ -54,9 +54,27 @@
       "</div>" +
       "</div>";
 
+    function formatLocalYmdHms(d) {
+      var pad = function (n) {
+        return (n < 10 ? "0" : "") + n;
+      };
+      return (
+        d.getFullYear() +
+        "-" +
+        pad(d.getMonth() + 1) +
+        "-" +
+        pad(d.getDate()) +
+        " " +
+        pad(d.getHours()) +
+        ":" +
+        pad(d.getMinutes()) +
+        ":" +
+        pad(d.getSeconds())
+      );
+    }
     var siteTime = "";
     try {
-      siteTime = new Date(document.lastModified).toISOString().slice(0, 10);
+      siteTime = formatLocalYmdHms(new Date(document.lastModified));
     } catch (err) {}
     var author = (site.author || "").trim();
     var lines =
