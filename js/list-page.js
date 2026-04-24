@@ -1,5 +1,18 @@
 /** 通用分类列表：筛选 / 排序 / 卡片表格视图 / 懒加载 */
 (function () {
+  try {
+    if (typeof DebugLog !== "undefined" && DebugLog.add) {
+      var p = "";
+      try {
+        p = typeof AppUtils !== "undefined" && AppUtils.parseParams ? AppUtils.parseParams().category || "" : "";
+      } catch (e2) {}
+      DebugLog.add("info", "list-page", "list-page.js 已加载", {
+        href: typeof location !== "undefined" ? location.href : "",
+        category: p,
+      });
+    }
+  } catch (e) {}
+
   var app = AppUtils.$("#app");
   var footer = AppUtils.$("#footer");
   var navMount = AppUtils.$("#navMount");
