@@ -203,9 +203,20 @@
       "remark": "施耐德变焦，旅行随手拍。",
       "specs": {
         "sensorFormat": "135",
-        "lens": "38-140mm 施耐德变焦"
+        "lens": "施耐德",
+        "series": "",
+        "alias": "",
+        "prime": "变焦",
+        "focal": "38-140mm",
+        "aperture": "f/4.6（广角端）- f/12.2（长焦端）",
+        "macro": "有",
+        "shutter": "1/3-1/400",
+        "iso": "50-3200",
+        "battery": "1节  CR123A",
+        "size": "115mm × 65mm × 44mm",
+        "weight": "250g"
       },
-      "updateTime": "2026-04-24"
+      "updateTime": "2026-04-27"
     },
     {
       "id": 2,
