@@ -679,6 +679,76 @@ main.container#app:not(.container--home) > .app-boot-host {
   align-items: center;
 }
 
+/* 列表页：顶栏与筛选压缩（见 list-page.js） */
+.list-page .list-toolbar {
+  margin-bottom: 10px;
+}
+.list-page .list-toolbar__h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.list-page .list-toolbar__meta {
+  margin: 2px 0 0;
+  font-size: 12px;
+}
+.list-page .list-toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 8px;
+}
+.list-page .list-toolbar__btns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.list-page .list-toolbar__sort {
+  max-width: 130px;
+  width: auto;
+  min-width: 110px;
+}
+.list-page .list-toolbar__search {
+  flex: 1 1 200px;
+  min-width: 180px;
+  max-width: none;
+}
+.list-page .filters.filters--compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: stretch;
+}
+.list-page .filters.filters--compact .filter-block {
+  flex: 1 1 200px;
+  max-width: 100%;
+  min-width: 140px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+.list-page .filter-block--brand {
+  flex: 2 1 280px;
+}
+.list-page .filters.filters--compact .filter-block h4 {
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.list-page .chips--dense {
+  gap: 4px;
+}
+.list-page .chips--dense .chip {
+  font-size: 12px;
+  padding: 3px 7px;
+}
+.list-page .input.input--range {
+  max-width: 96px;
+  width: 100%;
+}
+
 .table-wrap {
   border: 1px solid var(--line);
   border-radius: 12px;

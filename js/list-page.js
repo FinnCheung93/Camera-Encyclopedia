@@ -44,6 +44,25 @@
     });
   }
 
+  /** 用于顶部关键词：仅拼接「参与筛选」的字段 + 常用顶层字段，便于一处搜索 */
+  function camSearchHaystack(cam, cat) {
+    var chunks = [];
+    function push(v) {
+      if (v === undefined || v === null) return;
+      var s = String(v).trim();
+      if (s) chunks.push(s);
+    }
+    push(cam.brand);
+    push(cam.model);
+    push(cam.remark);
+    push(cam.image);
+    (cat.fieldConfig || []).forEach(function (f) {
+      if (!f.isFilter) return;
+      push(AppUtils.getCamField(cam, f.fieldId));
+    });
+    return chunks.join(" ").toLowerCase();
+  }
+
   function sortCameras(list, mode) {
     var out = list.slice();
     if (mode === "yearAsc") {
@@ -71,6 +90,9 @@
   function matchFilters(cam, cat, state) {
     if (state.brands.size && !state.brands.has(String(cam.brand || ""))) return false;
 
+    var gq = (state.globalQ || "").trim().toLowerCase();
+    if (gq && camSearchHaystack(cam, cat).indexOf(gq) < 0) return false;
+
     for (var i = 0; i < cat.fieldConfig.length; i++) {
       var f = cat.fieldConfig[i];
       if (!f.isFilter) continue;
@@ -87,9 +109,6 @@
         if (set && set.size) {
           if (!set.has(String(val || ""))) return false;
         }
-      } else {
-        var q = (state.textQ[f.fieldId] || "").trim().toLowerCase();
-        if (q && String(val || "").toLowerCase().indexOf(q) < 0) return false;
       }
     }
     return true;
@@ -182,14 +201,13 @@
       brands: new Set(),
       numRange: {},
       selectSet: {},
-      textQ: {},
+      globalQ: "",
     };
 
     cat.fieldConfig.forEach(function (f) {
       if (!f.isFilter) return;
       if (f.fieldType === "number") state.numRange[f.fieldId] = { min: "", max: "" };
       if (f.fieldType === "select") state.selectSet[f.fieldId] = new Set();
-      if (f.fieldType === "text" || f.fieldType === "textarea") state.textQ[f.fieldId] = "";
     });
 
     function chipsHtml(fieldKey, values, label) {
@@ -234,7 +252,9 @@
     function filterBlocks() {
       var blocks = [];
       blocks.push(
-        '<div class="filter-block"><h4>品牌（多选）</h4><div class="chips" id="chip-brand">' +
+        '<div class="filter-block filter-block--brand">' +
+          '<h4>品牌</h4>' +
+          '<div class="chips chips--dense" id="chip-brand">' +
           chipsHtml("brands", brandsInList(baseList), "brands") +
           "</div></div>"
       );
@@ -242,39 +262,31 @@
       cat.fieldConfig.forEach(function (f) {
         if (!f.isFilter) return;
         if (f.fieldType === "number") {
-          var r = state.numRange[f.fieldId];
           blocks.push(
-            '<div class="filter-block"><h4>' +
+            '<div class="filter-block filter-block--compact">' +
+              "<h4>" +
               AppUtils.escapeHtml(f.fieldName) +
               "（区间）</h4>" +
               '<div class="range-row">' +
-              '<input class="input" style="max-width:140px" data-num-min="' +
+              '<input class="input input--range" data-num-min="' +
               AppUtils.escapeHtml(f.fieldId) +
               '" placeholder="最小" />' +
               "<span class=\"muted\">~</span>" +
-              '<input class="input" style="max-width:140px" data-num-max="' +
+              '<input class="input input--range" data-num-max="' +
               AppUtils.escapeHtml(f.fieldId) +
               '" placeholder="最大" />' +
               "</div></div>"
           );
         } else if (f.fieldType === "select") {
           blocks.push(
-            '<div class="filter-block"><h4>' +
+            '<div class="filter-block filter-block--compact">' +
+              "<h4>" +
               AppUtils.escapeHtml(f.fieldName) +
-              '（多选）</h4><div class="chips" data-sel-block="' +
+              "</h4>" +
+              '<div class="chips chips--dense" data-sel-block="' +
               AppUtils.escapeHtml(f.fieldId) +
               '">' +
               selectFilterChips(f) +
-              "</div></div>"
-          );
-        } else if (f.fieldType === "text" || f.fieldType === "textarea") {
-          blocks.push(
-            '<div class="filter-block"><h4>' +
-              AppUtils.escapeHtml(f.fieldName) +
-              "（包含）</h4>" +
-              '<input class="input" style="max-width:none" data-text-field="' +
-              AppUtils.escapeHtml(f.fieldId) +
-              '" placeholder="输入关键词" />' +
               "</div></div>"
           );
         }
@@ -288,7 +300,7 @@
         brands: state.brands,
         numRange: state.numRange,
         selectSet: state.selectSet,
-        textQ: state.textQ,
+        globalQ: state.globalQ,
       };
       var filtered = baseList.filter(function (c) {
         return matchFilters(c, cat, filterState);
@@ -326,31 +338,37 @@
     }
 
     app.innerHTML =
-      '<div class="controls">' +
-      '<div style="flex:1;min-width:220px;">' +
-      "<h1 style=\"margin:0;font-size:20px;\">" +
+      '<div class="list-page">' +
+      '<header class="list-toolbar">' +
+      '<div class="list-toolbar__title">' +
+      "<h1 class=\"list-toolbar__h1\">" +
       AppUtils.escapeHtml(cat.categoryName) +
       "</h1>" +
-      '<p class="muted" style="margin:4px 0 0;">共 ' +
+      '<p class="muted list-toolbar__meta">共 ' +
       baseList.length +
-      " 台（筛选结果实时更新）</p>" +
+      " 台 · 筛选与排序即时生效</p>" +
       "</div>" +
-      '<div class="row">' +
-      '<button type="button" class="btn btn-primary" id="viewCard">卡片视图</button>' +
-      '<button type="button" class="btn" id="viewTable">表格视图</button>' +
-      '<select class="select" id="sortSelect" style="max-width:260px;width:auto;">' +
-      '<option value="yearDesc">按发布年份倒序</option>' +
-      '<option value="yearAsc">按发布年份正序</option>' +
-      '<option value="updatedDesc">按更新时间倒序</option>' +
-      '<option value="brandAsc">按品牌首字母正序</option>' +
+      '<div class="list-toolbar__row">' +
+      '<div class="list-toolbar__btns">' +
+      '<button type="button" class="btn btn-primary" id="viewCard">卡片</button>' +
+      '<button type="button" class="btn" id="viewTable">表格</button>' +
+      '<select class="select list-toolbar__sort" id="sortSelect">' +
+      '<option value="yearDesc">年份 ↓</option>' +
+      '<option value="yearAsc">年份 ↑</option>' +
+      '<option value="updatedDesc">更新时间 ↓</option>' +
+      '<option value="brandAsc">品牌 A–Z</option>' +
       "</select>" +
-      '<button type="button" class="btn" id="resetFilters">重置筛选</button>' +
+      '<button type="button" class="btn" id="resetFilters">重置</button>' +
       "</div>" +
+      '<input type="search" class="input list-toolbar__search" id="filterGlobal" autocomplete="off" ' +
+      'placeholder="关键词：品牌、型号、备注及已勾选「筛选」的字段全文…" />' +
       "</div>" +
-      '<section class="filters">' +
+      "</header>" +
+      '<section class="filters filters--compact">' +
       filterBlocks() +
       "</section>" +
-      '<div id="listMount"></div>';
+      '<div id="listMount"></div>' +
+      "</div>";
 
     cat.fieldConfig.forEach(function (f) {
       if (!f.isFilter || f.fieldType !== "number") return;
@@ -359,13 +377,8 @@
       if (mn) mn.value = state.numRange[f.fieldId].min;
       if (mx) mx.value = state.numRange[f.fieldId].max;
     });
-    cat.fieldConfig.forEach(function (f) {
-      if (!f.isFilter) return;
-      if (f.fieldType === "text" || f.fieldType === "textarea") {
-        var el = AppUtils.$('[data-text-field="' + f.fieldId + '"]');
-        if (el) el.value = state.textQ[f.fieldId] || "";
-      }
-    });
+    var gIn = AppUtils.$("#filterGlobal");
+    if (gIn) gIn.value = state.globalQ || "";
 
     function wire() {
       AppUtils.$("#viewCard").addEventListener("click", function () {
@@ -382,11 +395,13 @@
       });
       AppUtils.$("#resetFilters").addEventListener("click", function () {
         state.brands = new Set();
+        state.globalQ = "";
+        var gin = AppUtils.$("#filterGlobal");
+        if (gin) gin.value = "";
         cat.fieldConfig.forEach(function (f) {
           if (!f.isFilter) return;
           if (f.fieldType === "number") state.numRange[f.fieldId] = { min: "", max: "" };
           if (f.fieldType === "select") state.selectSet[f.fieldId] = new Set();
-          if (f.fieldType === "text" || f.fieldType === "textarea") state.textQ[f.fieldId] = "";
         });
         AppUtils.$all(".chip.on").forEach(function (el) {
           el.classList.remove("on");
@@ -394,11 +409,16 @@
         AppUtils.$all("[data-num-min],[data-num-max]").forEach(function (el) {
           el.value = "";
         });
-        AppUtils.$all("[data-text-field]").forEach(function (el) {
-          el.value = "";
-        });
         paint();
       });
+
+      var fg = AppUtils.$("#filterGlobal");
+      if (fg) {
+        fg.addEventListener("input", function () {
+          state.globalQ = fg.value;
+          paint();
+        });
+      }
 
       AppUtils.$all("#chip-brand .chip").forEach(function (el) {
         el.addEventListener("click", function () {
@@ -432,13 +452,6 @@
         });
       });
 
-      AppUtils.$all("[data-text-field]").forEach(function (el) {
-        el.addEventListener("input", function () {
-          var fid = el.getAttribute("data-text-field");
-          state.textQ[fid] = el.value;
-          paint();
-        });
-      });
     }
 
     wire();
