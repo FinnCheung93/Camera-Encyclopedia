@@ -29,7 +29,7 @@
           "fieldId": "series",
           "fieldName": "系列",
           "fieldType": "text",
-          "required": true,
+          "required": false,
           "isFilter": false
         },
         {
@@ -43,7 +43,7 @@
           "fieldId": "alias",
           "fieldName": "别称",
           "fieldType": "text",
-          "required": true,
+          "required": false,
           "isFilter": false
         },
         {
@@ -136,14 +136,14 @@
           "fieldId": "image",
           "fieldName": "图链",
           "fieldType": "text",
-          "required": true,
+          "required": false,
           "isFilter": false
         },
         {
           "fieldId": "remark",
           "fieldName": "备注",
           "fieldType": "textarea",
-          "required": true,
+          "required": false,
           "isFilter": false
         }
       ]
