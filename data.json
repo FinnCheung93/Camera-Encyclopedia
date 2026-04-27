@@ -19,6 +19,13 @@
       "status": "enable",
       "fieldConfig": [
         {
+          "fieldId": "image",
+          "fieldName": "图链",
+          "fieldType": "text",
+          "required": false,
+          "isFilter": false
+        },
+        {
           "fieldId": "brand",
           "fieldName": "品牌",
           "fieldType": "text",
@@ -130,13 +137,6 @@
           "fieldName": "重量",
           "fieldType": "text",
           "required": true,
-          "isFilter": false
-        },
-        {
-          "fieldId": "image",
-          "fieldName": "图链",
-          "fieldType": "text",
-          "required": false,
           "isFilter": false
         },
         {
