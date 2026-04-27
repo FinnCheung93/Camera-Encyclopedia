@@ -48,10 +48,22 @@
         },
         {
           "fieldId": "year",
-          "fieldName": "发布年份",
+          "fieldName": "年份",
           "fieldType": "number",
           "required": true,
           "isFilter": true
+        },
+        {
+          "fieldId": "prime",
+          "fieldName": "定焦",
+          "fieldType": "select",
+          "required": true,
+          "isFilter": true,
+          "options": [
+            "定焦",
+            "变焦",
+            "双定焦"
+          ]
         },
         {
           "fieldId": "lens",
@@ -87,21 +99,21 @@
         },
         {
           "fieldId": "shutter",
-          "fieldName": "快门范围",
+          "fieldName": "快门",
           "fieldType": "text",
           "required": true,
           "isFilter": false
         },
         {
           "fieldId": "iso",
-          "fieldName": "iSO 范围",
+          "fieldName": "ISO",
           "fieldType": "text",
           "required": true,
           "isFilter": false
         },
         {
           "fieldId": "battery",
-          "fieldName": "电池型号",
+          "fieldName": "电池",
           "fieldType": "text",
           "required": true,
           "isFilter": false
@@ -122,14 +134,14 @@
         },
         {
           "fieldId": "image",
-          "fieldName": "机型图片URL",
+          "fieldName": "图链",
           "fieldType": "text",
           "required": true,
           "isFilter": false
         },
         {
           "fieldId": "remark",
-          "fieldName": "个人备注",
+          "fieldName": "备注",
           "fieldType": "textarea",
           "required": true,
           "isFilter": false
