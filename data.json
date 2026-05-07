@@ -23,49 +23,56 @@
           "fieldName": "图链",
           "fieldType": "text",
           "required": false,
-          "isFilter": false
+          "isFilter": false,
+          "isTag": false
         },
         {
           "fieldId": "brand",
           "fieldName": "品牌",
           "fieldType": "text",
           "required": true,
-          "isFilter": true
+          "isFilter": false,
+          "isTag": false
         },
         {
           "fieldId": "series",
           "fieldName": "系列",
           "fieldType": "text",
           "required": false,
-          "isFilter": false
+          "isFilter": true,
+          "isTag": true
         },
         {
           "fieldId": "model",
           "fieldName": "型号",
           "fieldType": "text",
           "required": true,
-          "isFilter": true
+          "isFilter": false,
+          "isTag": false
         },
         {
           "fieldId": "alias",
           "fieldName": "别称",
           "fieldType": "text",
           "required": false,
-          "isFilter": false
+          "isFilter": false,
+          "isTag": true
         },
         {
           "fieldId": "year",
           "fieldName": "年份",
           "fieldType": "number",
           "required": true,
-          "isFilter": true
+          "isFilter": false,
+          "isTag": true
         },
         {
           "fieldId": "prime",
           "fieldName": "定焦",
           "fieldType": "select",
           "required": true,
-          "isFilter": true,
+          "isFilter": false,
+          "isTag": true,
           "options": [
             "定焦",
             "变焦",
@@ -77,21 +84,24 @@
           "fieldName": "镜头",
           "fieldType": "text",
           "required": true,
-          "isFilter": true
+          "isFilter": false,
+          "isTag": true
         },
         {
           "fieldId": "focal",
           "fieldName": "焦段",
           "fieldType": "text",
           "required": true,
-          "isFilter": false
+          "isFilter": false,
+          "isTag": false
         },
         {
           "fieldId": "aperture",
           "fieldName": "光圈",
           "fieldType": "text",
           "required": true,
-          "isFilter": false
+          "isFilter": false,
+          "isTag": false
         },
         {
           "fieldId": "macro",
@@ -99,6 +109,7 @@
           "fieldType": "select",
           "required": true,
           "isFilter": false,
+          "isTag": false,
           "options": [
             "有",
             "无"
@@ -109,42 +120,48 @@
           "fieldName": "快门",
           "fieldType": "text",
           "required": true,
-          "isFilter": false
+          "isFilter": false,
+          "isTag": false
         },
         {
           "fieldId": "iso",
           "fieldName": "ISO",
           "fieldType": "text",
           "required": true,
-          "isFilter": false
+          "isFilter": false,
+          "isTag": false
         },
         {
           "fieldId": "battery",
           "fieldName": "电池",
           "fieldType": "text",
           "required": true,
-          "isFilter": false
+          "isFilter": false,
+          "isTag": true
         },
         {
           "fieldId": "size",
           "fieldName": "尺寸",
           "fieldType": "text",
           "required": true,
-          "isFilter": false
+          "isFilter": false,
+          "isTag": true
         },
         {
           "fieldId": "weight",
           "fieldName": "重量",
           "fieldType": "text",
           "required": true,
-          "isFilter": false
+          "isFilter": false,
+          "isTag": true
         },
         {
           "fieldId": "remark",
           "fieldName": "备注",
           "fieldType": "textarea",
           "required": false,
-          "isFilter": false
+          "isFilter": false,
+          "isTag": true
         }
       ]
     },
@@ -208,7 +225,7 @@
         "alias": "Evoca 140 Neo、Vega 140S（海外市场通用别称）",
         "prime": "变焦",
         "focal": "38-140mm",
-        "aperture": "f/4.6（广角端）- f/12.2（长焦端）",
+        "aperture": "F4.6-12.2",
         "macro": "有",
         "shutter": "1/3-1/400",
         "iso": "50-3200",
@@ -216,7 +233,7 @@
         "size": "115mm × 65mm × 44mm",
         "weight": "250g"
       },
-      "updateTime": "2026-04-27"
+      "updateTime": "2026-05-07"
     },
     {
       "id": 2,
