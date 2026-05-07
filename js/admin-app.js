@@ -193,7 +193,6 @@
       '<div class="form-field"><label>网站标题</label><input class="input" id="siteTitle" style="max-width:none" /></div>' +
       '<div class="form-field"><label>一句话介绍</label><input class="input" id="siteDesc" style="max-width:none" /></div>' +
       '<div class="form-field"><label>个人署名</label><input class="input" id="author" style="max-width:none" /></div>' +
-      '<div class="form-field"><label>列表默认视图</label><select class="select" id="defaultView" style="max-width:none"><option value="card">卡片</option><option value="table">表格</option></select></div>' +
       '<div class="form-field"><label>后台登录密码（写入 data.json）</label><input class="input" id="password" type="text" style="max-width:none" /></div>' +
       "</div>" +
       '<p class="muted" style="margin:12px 0 8px;line-height:1.55;">' +
@@ -213,7 +212,6 @@
     AppUtils.$("#siteTitle").value = s.siteTitle || "";
     AppUtils.$("#siteDesc").value = s.siteDesc || "";
     AppUtils.$("#author").value = s.author || "";
-    AppUtils.$("#defaultView").value = s.defaultView === "table" ? "table" : "card";
     AppUtils.$("#password").value = s.password || "";
     AppUtils.$("#ghOwner").value = gh.owner || "";
     AppUtils.$("#ghRepo").value = gh.repo || "";
@@ -224,7 +222,6 @@
       DB.siteConfig.siteTitle = AppUtils.$("#siteTitle").value;
       DB.siteConfig.siteDesc = AppUtils.$("#siteDesc").value;
       DB.siteConfig.author = AppUtils.$("#author").value;
-      DB.siteConfig.defaultView = AppUtils.$("#defaultView").value;
       DB.siteConfig.password = AppUtils.$("#password").value;
       DB.siteConfig.githubConfig = {
         owner: AppUtils.$("#ghOwner").value.trim(),

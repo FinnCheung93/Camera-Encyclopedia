@@ -229,10 +229,7 @@
     var site = db.siteConfig || {};
     var siteTitle = (site.siteTitle && String(site.siteTitle).trim()) || "相机图鉴";
     document.title = (cat.categoryName || "列表") + " · " + siteTitle;
-    var defaultView = site.defaultView === "table" ? "table" : "card";
-
     var state = {
-      view: defaultView,
       sort: "yearDesc",
       brands: new Set(),
       numRange: {},
@@ -343,8 +340,6 @@
       });
       var sorted = sortCameras(filtered, state.sort);
 
-      AppUtils.$("#viewCard").className = "btn" + (state.view === "card" ? " btn-primary" : "");
-      AppUtils.$("#viewTable").className = "btn" + (state.view === "table" ? " btn-primary" : "");
       AppUtils.$("#sortSelect").value = state.sort;
 
       var mountList = AppUtils.$("#listMount");
@@ -352,25 +347,19 @@
         mountList.innerHTML = emptyState();
         return;
       }
-      if (state.view === "card") {
-        mountList.innerHTML = '<div class="grid-cards">' + sorted.map(function (c) {
-          return renderCard(c, cat);
-        }).join("") + "</div>";
-      } else {
-        var head = cat.fieldConfig
-          .map(function (f) {
-            return "<th>" + AppUtils.escapeHtml(f.fieldName) + "</th>";
-          })
-          .join("");
-        mountList.innerHTML =
-          '<div class="table-wrap"><table class="data-table"><thead><tr>' +
-          head +
-          "</tr></thead><tbody>" +
-          sorted.map(function (c) {
-            return renderTable(c, cat);
-          }).join("") +
-          "</tbody></table></div>";
-      }
+      var head = cat.fieldConfig
+        .map(function (f) {
+          return "<th>" + AppUtils.escapeHtml(f.fieldName) + "</th>";
+        })
+        .join("");
+      mountList.innerHTML =
+        '<div class="table-wrap"><table class="data-table"><thead><tr>' +
+        head +
+        "</tr></thead><tbody>" +
+        sorted.map(function (c) {
+          return renderTable(c, cat);
+        }).join("") +
+        "</tbody></table></div>";
     }
 
     app.innerHTML =
@@ -386,8 +375,6 @@
       "</div>" +
       '<div class="list-toolbar__row">' +
       '<div class="list-toolbar__btns">' +
-      '<button type="button" class="btn btn-primary" id="viewCard">卡片</button>' +
-      '<button type="button" class="btn" id="viewTable">表格</button>' +
       '<select class="select list-toolbar__sort" id="sortSelect">' +
       '<option value="yearDesc">年份 ↓</option>' +
       '<option value="yearAsc">年份 ↑</option>' +
@@ -417,14 +404,6 @@
     if (gIn) gIn.value = state.globalQ || "";
 
     function wire() {
-      AppUtils.$("#viewCard").addEventListener("click", function () {
-        state.view = "card";
-        paint();
-      });
-      AppUtils.$("#viewTable").addEventListener("click", function () {
-        state.view = "table";
-        paint();
-      });
       AppUtils.$("#sortSelect").addEventListener("change", function () {
         state.sort = AppUtils.$("#sortSelect").value;
         paint();
