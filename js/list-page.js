@@ -120,14 +120,48 @@
     return s.slice(0, 80) + "…";
   }
 
-  function tagsForCard(cam, cat) {
+  function cardTagHtml(f, v) {
+    return (
+      '<span class="tag">' +
+      AppUtils.escapeHtml(f.fieldName) +
+      "：" +
+      AppUtils.escapeHtml(String(v)) +
+      "</span>"
+    );
+  }
+
+  function tagsForCard(cam, cat, opts) {
+    opts = opts || {};
+    var max = typeof opts.max === "number" ? opts.max : 8;
+    var showAll = !!opts.showAll;
+
     var tags = [];
+    var total = 0;
+    var shown = 0;
+
     cat.fieldConfig.forEach(function (f) {
       if (["brand", "model", "year", "image", "remark"].indexOf(f.fieldId) >= 0) return;
       var v = AppUtils.getCamField(cam, f.fieldId);
       if (v === undefined || v === null || v === "") return;
-      tags.push('<span class="tag">' + AppUtils.escapeHtml(f.fieldName) + "：" + AppUtils.escapeHtml(String(v)) + "</span>");
+      total++;
+      if (showAll || shown < max) {
+        tags.push(cardTagHtml(f, v));
+        shown++;
+      }
     });
+
+    var hidden = Math.max(0, total - shown);
+    if (!showAll && hidden > 0) {
+      tags.push(
+        '<button type="button" class="tag tag-more" data-action="expand-tags" aria-label="展开更多参数">+' +
+          AppUtils.escapeHtml(String(hidden)) +
+          "</button>"
+      );
+    } else if (showAll && total > max) {
+      tags.push(
+        '<button type="button" class="tag tag-more" data-action="collapse-tags" aria-label="收起参数">收起</button>'
+      );
+    }
     return tags.join("");
   }
 
@@ -155,8 +189,10 @@
       '<div class="muted">发布年份：' +
       AppUtils.escapeHtml(String(cam.year || "")) +
       "</div>" +
-      '<div class="tag-row">' +
-      tagsForCard(cam, cat) +
+      '<div class="tag-row" data-tag-state="collapsed" data-tag-max="8" data-cam-key="' +
+      AppUtils.escapeHtml(String(cam.brand || "") + " " + String(cam.model || "")) +
+      '">' +
+      tagsForCard(cam, cat, { max: 8, showAll: false }) +
       "</div>" +
       '<p class="muted" style="margin:8px 0 0;font-size:13px;">' +
       AppUtils.escapeHtml(remarkPreview(cam.remark)) +
@@ -452,6 +488,33 @@
         });
       });
 
+      // 卡片内“+N/收起”委托事件（避免 paint 后重复绑大量监听）
+      var listMount = AppUtils.$("#listMount");
+      if (listMount) {
+        listMount.addEventListener("click", function (ev) {
+          var t = ev.target;
+          if (!t || !t.getAttribute) return;
+          var action = t.getAttribute("data-action") || "";
+          if (action !== "expand-tags" && action !== "collapse-tags") return;
+          ev.preventDefault();
+          ev.stopPropagation();
+
+          var row = t.closest ? t.closest(".tag-row") : null;
+          if (!row) return;
+
+          // 通过 brand+model 作为 key，在 DOM 上就地替换内容（不触发全局 paint）
+          var key = row.getAttribute("data-cam-key") || "";
+          var cam = (baseList || []).find(function (x) {
+            return String((x.brand || "") + " " + (x.model || "")).trim() === String(key).trim();
+          });
+          if (!cam) return;
+
+          var max = Number(row.getAttribute("data-tag-max") || 8) || 8;
+          var showAll = action === "expand-tags";
+          row.setAttribute("data-tag-state", showAll ? "expanded" : "collapsed");
+          row.innerHTML = tagsForCard(cam, cat, { max: max, showAll: showAll });
+        });
+      }
     }
 
     wire();

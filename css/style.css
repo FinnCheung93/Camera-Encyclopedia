@@ -561,6 +561,17 @@ main.container#app:not(.container--home) > .app-boot-host {
   color: var(--muted);
 }
 
+.tag-more {
+  border: 0;
+  outline: none;
+  background: #e8efff;
+  color: #1d4ed8;
+}
+
+.tag-more:hover {
+  filter: brightness(0.98);
+}
+
 .section-title {
   font-size: 18px;
   font-weight: 700;
