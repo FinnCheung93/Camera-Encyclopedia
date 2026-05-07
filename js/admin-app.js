@@ -872,6 +872,7 @@
       opts +
       "</select></div>" +
       '<div class="form-field"><label>目标品牌</label><input class="input" id="impBrand" style="max-width:none" placeholder="例如：佳能" /></div>' +
+      '<div class="form-field"><label>范本机型（可选）</label><select class="select" id="impSample" style="max-width:none"><option value="">不使用范本（按字段生成空模板）</option></select></div>' +
       "</div>" +
       '<pre class="panel" id="impPreview" style="max-height:240px;overflow:auto;display:none;margin:10px 0;"></pre>' +
       '<div class="admin-action-bar admin-action-bar--tight">' +
@@ -888,7 +889,60 @@
       });
     }
 
-    function buildImportTemplateItem(cat) {
+    function findSampleCam(cat) {
+      try {
+        var sid = Number(AppUtils.$("#impSample").value || 0);
+        if (!sid) return null;
+        var list = camerasOf(cat.categoryId);
+        for (var i = 0; i < list.length; i++) {
+          if (Number(list[i].id) === sid) return list[i];
+        }
+        return null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function refreshSampleOptions() {
+      var cat = currentCat();
+      var sel = AppUtils.$("#impSample");
+      if (!sel) return;
+      var keep = sel.value || "";
+      var brand = (AppUtils.$("#impBrand").value || "").trim();
+      var list = cat ? camerasOf(cat.categoryId) : [];
+      if (brand) {
+        list = list.filter(function (c) {
+          return String(c.brand || "").trim() === brand;
+        });
+      }
+      // 最多列 80 条，避免超长下拉
+      list = list.slice(0, 80);
+      sel.innerHTML =
+        '<option value="">不使用范本（按字段生成空模板）</option>' +
+        list
+          .map(function (c) {
+            var label =
+              (c.model ? String(c.model) : "未命名") +
+              " · " +
+              (c.year ? String(c.year) : "—") +
+              " · ID " +
+              String(c.id);
+            return (
+              '<option value="' +
+              AppUtils.escapeHtml(String(c.id)) +
+              '">' +
+              AppUtils.escapeHtml(label) +
+              "</option>"
+            );
+          })
+          .join("");
+      // 还原之前选择（若仍存在）
+      try {
+        sel.value = keep;
+      } catch (e2) {}
+    }
+
+    function buildImportTemplateItem(cat, sampleCam) {
       var item = { specs: {} };
       (cat.fieldConfig || []).forEach(function (f) {
         var fid = f.fieldId;
@@ -896,14 +950,26 @@
         if (fid === "brand") return; // 品牌由上方输入框指定
 
         var sample = f.fieldType === "number" ? 0 : "";
+        // 若选择了范本：优先拿范本值（仅取当前字段配置内的字段）
+        if (sampleCam) {
+          var v0 = AppUtils.ROOT_FIELD_IDS[fid] ? sampleCam[fid] : sampleCam.specs && sampleCam.specs[fid];
+          if (v0 !== undefined && v0 !== null && String(v0).trim() !== "") {
+            sample = v0;
+          }
+        }
         if (fid === "year") sample = 1998;
         if (f.fieldType === "select") {
           var opts = f.options || [];
-          sample = opts.length ? String(opts[0]) : "";
+          // 若范本值不在选项中，用第一个选项兜底
+          if (sampleCam) {
+            var s = String(sample || "");
+            if (opts.length && s && opts.indexOf(s) < 0) sample = "";
+          }
+          if (sample === "" && opts.length) sample = String(opts[0]);
         } else if (f.fieldType === "textarea") {
-          sample = f.fieldName ? String(f.fieldName) : "";
+          if (!sampleCam) sample = f.fieldName ? String(f.fieldName) : "";
         } else if (f.fieldType === "text") {
-          sample = f.fieldName ? String(f.fieldName) : "";
+          if (!sampleCam) sample = f.fieldName ? String(f.fieldName) : "";
         }
 
         if (AppUtils.ROOT_FIELD_IDS[fid]) item[fid] = sample;
@@ -932,11 +998,19 @@
     AppUtils.$("#dlImpTpl").addEventListener("click", function () {
       var cat = currentCat();
       if (!cat) return;
-      var item = buildImportTemplateItem(cat);
+      var sampleCam = findSampleCam(cat);
+      var item = buildImportTemplateItem(cat, sampleCam);
       var filename = "import-template-" + String(cat.categoryId || "category") + ".json";
       downloadJson(filename, [item]);
       AppUtils.toast("已下载 " + filename);
     });
+
+    AppUtils.$("#impCat").addEventListener("change", refreshSampleOptions);
+    AppUtils.$("#impBrand").addEventListener("input", function () {
+      // 轻微延迟：避免输入法组合态频繁重绘
+      refreshSampleOptions();
+    });
+    refreshSampleOptions();
 
     var pending = null;
     AppUtils.$("#impFile").addEventListener("change", function () {
