@@ -31,7 +31,7 @@
           "fieldName": "品牌",
           "fieldType": "text",
           "required": true,
-          "isFilter": false,
+          "isFilter": true,
           "isTag": false
         },
         {
