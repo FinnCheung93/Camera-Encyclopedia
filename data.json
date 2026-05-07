@@ -19,14 +19,6 @@
       "status": "enable",
       "fieldConfig": [
         {
-          "fieldId": "image",
-          "fieldName": "图链",
-          "fieldType": "text",
-          "required": false,
-          "isFilter": false,
-          "isTag": false
-        },
-        {
           "fieldId": "brand",
           "fieldName": "品牌",
           "fieldType": "text",
