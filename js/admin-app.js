@@ -439,7 +439,7 @@
       "</select>" +
       "</div>" +
       '<p class="muted" style="margin:8px 0 0;">字段表：fieldId 创建后勿随意改名，以免影响历史 specs。拖拽左侧 ≈ 调整顺序，完成后点右侧「保存字段配置」。</p>' +
-      '<div class="table-wrap" style="margin-bottom:10px;"><table class="data-table"><thead><tr><th class="td-drag"></th><th>fieldId</th><th>名称</th><th>类型</th><th>必填</th><th>筛选</th><th>选项(逗号)</th><th>操作</th></tr></thead><tbody id="fieldRows"></tbody></table></div>' +
+      '<div class="table-wrap" style="margin-bottom:10px;"><table class="data-table"><thead><tr><th class="td-drag"></th><th>fieldId</th><th>名称</th><th>类型</th><th>必填</th><th>筛选</th><th>标签</th><th>选项(逗号)</th><th>操作</th></tr></thead><tbody id="fieldRows"></tbody></table></div>' +
       '<div class="admin-action-bar admin-action-bar--tight">' +
       '<button class="btn" type="button" id="addFieldRow">新增字段</button>' +
       '<span class="admin-action-bar__spacer" aria-hidden="true"></span>' +
@@ -532,6 +532,9 @@
             '<td><input type="checkbox" data-k="isFilter" ' +
             (f.isFilter ? "checked" : "") +
             " /></td>" +
+            '<td><input type="checkbox" data-k="isTag" ' +
+            (f.isTag ? "checked" : "") +
+            " /></td>" +
             '<td><input class="input" data-k="options" style="max-width:220px" value="' +
             AppUtils.escapeHtml((f.options || []).join(",")) +
             "\" /></td>" +
@@ -564,6 +567,7 @@
         fieldType: "text",
         required: false,
         isFilter: false,
+        isTag: false,
       });
       paintRows();
     });
@@ -593,6 +597,7 @@
           fieldType: fieldType,
           required: get("required").checked,
           isFilter: get("isFilter").checked,
+          isTag: get("isTag").checked,
           options: fieldType === "select" ? options : undefined,
         });
       });

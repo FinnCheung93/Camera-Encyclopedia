@@ -781,6 +781,52 @@ table.data-table {
   white-space: nowrap;
 }
 
+/* 列表表格：展示型（图片缩略图 + 标签堆叠），避免“纯数据表”观感 */
+.data-table th.th-image,
+.data-table td.td-image {
+  width: 72px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.table-thumb-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 42px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.table-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.data-table th.th-tags,
+.data-table td.td-tags {
+  min-width: 240px;
+  max-width: 420px;
+  white-space: normal;
+}
+
+.table-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.tag.tag--table {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .data-table th {
   background: #f3f5f7;
   font-weight: 600;

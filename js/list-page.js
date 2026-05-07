@@ -165,10 +165,48 @@
     return tags.join("");
   }
 
-  function renderTable(cam, cat) {
-    var cells = cat.fieldConfig.map(function (f) {
+  function tableThumbHtml(url) {
+    var u = String(url || "").trim();
+    if (!u) return "";
+    // 允许 url 很长时不占位：用缩略图 + 新窗口打开
+    return (
+      '<a class="table-thumb-link" href="' +
+      AppUtils.escapeHtml(u) +
+      '" target="_blank" rel="noopener">' +
+      '<img class="table-thumb" loading="lazy" decoding="async" src="' +
+      AppUtils.escapeHtml(u) +
+      '" alt="" />' +
+      "</a>"
+    );
+  }
+
+  function renderTagStack(cam, cat, tagFields) {
+    var tags = [];
+    (tagFields || []).forEach(function (f) {
       var v = AppUtils.getCamField(cam, f.fieldId);
-      return "<td>" + AppUtils.escapeHtml(v === undefined || v === null ? "" : String(v)) + "</td>";
+      if (v === undefined || v === null || String(v).trim() === "") return;
+      tags.push(
+        '<span class="tag tag--table">' +
+          AppUtils.escapeHtml(f.fieldName) +
+          "：" +
+          AppUtils.escapeHtml(String(v)) +
+          "</span>"
+      );
+    });
+    return tags.length ? '<div class="table-tags">' + tags.join("") + "</div>" : "";
+  }
+
+  function renderTable(cam, colFields, tagFields) {
+    var cells = (colFields || []).map(function (f) {
+      if (f && f._tags) {
+        return '<td class="td-tags">' + renderTagStack(cam, { fieldConfig: [] }, tagFields) + "</td>";
+      }
+      var v = AppUtils.getCamField(cam, f.fieldId);
+      if (f.fieldId === "image") {
+        return '<td class="td-image">' + tableThumbHtml(v) + "</td>";
+      }
+      var s = v === undefined || v === null ? "" : String(v);
+      return "<td>" + AppUtils.escapeHtml(s) + "</td>";
     });
     return "<tr>" + cells.join("") + "</tr>";
   }
@@ -347,8 +385,19 @@
         mountList.innerHTML = emptyState();
         return;
       }
-      var head = cat.fieldConfig
+      var tagFields = (cat.fieldConfig || []).filter(function (f) {
+        return !!(f && f.isTag);
+      });
+      var colFields = (cat.fieldConfig || []).filter(function (f) {
+        return !(f && f.isTag);
+      });
+      if (tagFields.length) {
+        colFields = colFields.concat([{ _tags: true, fieldName: "标签" }]);
+      }
+      var head = colFields
         .map(function (f) {
+          if (f && f._tags) return '<th class="th-tags">标签</th>';
+          if (f.fieldId === "image") return '<th class="th-image">图片</th>';
           return "<th>" + AppUtils.escapeHtml(f.fieldName) + "</th>";
         })
         .join("");
@@ -357,7 +406,7 @@
         head +
         "</tr></thead><tbody>" +
         sorted.map(function (c) {
-          return renderTable(c, cat);
+          return renderTable(c, colFields, tagFields);
         }).join("") +
         "</tbody></table></div>";
     }
