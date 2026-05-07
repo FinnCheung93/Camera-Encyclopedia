@@ -944,6 +944,8 @@
 
     function buildImportTemplateItem(cat, sampleCam) {
       var item = { specs: {} };
+      // 给 AI/人工整理资料用的规范提示：select 字段的全量可选项（导入时会自动剔除）
+      var optionsHint = {};
       (cat.fieldConfig || []).forEach(function (f) {
         var fid = f.fieldId;
         if (!fid) return;
@@ -960,6 +962,10 @@
         if (fid === "year") sample = 1998;
         if (f.fieldType === "select") {
           var opts = f.options || [];
+          // 模板里附带全量可选项，便于 AI 按规范输出
+          if (opts && opts.length) {
+            optionsHint[fid] = opts.slice();
+          }
           // 若范本值不在选项中，用第一个选项兜底
           if (sampleCam) {
             var s = String(sample || "");
@@ -976,7 +982,24 @@
         else item.specs[fid] = sample;
       });
       if (!item.specs || !Object.keys(item.specs).length) delete item.specs;
+      if (optionsHint && Object.keys(optionsHint).length) {
+        item.__options = optionsHint;
+      }
       return item;
+    }
+
+    function stripInternalKeys(obj) {
+      if (!obj || typeof obj !== "object") return;
+      // 顶层：删除 __ 开头的键（例如 __options）
+      Object.keys(obj).forEach(function (k) {
+        if (k && k.slice(0, 2) === "__") delete obj[k];
+      });
+      // specs：同样删除 __ 开头的键
+      if (obj.specs && typeof obj.specs === "object") {
+        Object.keys(obj.specs).forEach(function (k2) {
+          if (k2 && k2.slice(0, 2) === "__") delete obj.specs[k2];
+        });
+      }
     }
 
     function downloadJson(filename, obj) {
@@ -1050,6 +1073,7 @@
       pending.forEach(function (item) {
         try {
           var cam = Object.assign({ specs: item.specs || {} }, item);
+          stripInternalKeys(cam);
           cam.brand = brand;
           cam.categoryId = catId;
           cam.id = cam.id && Number(cam.id) ? Number(cam.id) : nid++;
