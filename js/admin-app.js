@@ -875,6 +875,14 @@
       '<div class="form-field"><label>范本机型（可选）</label><select class="select" id="impSample" style="max-width:none"><option value="">不使用范本（按字段生成空模板）</option></select></div>' +
       "</div>" +
       '<pre class="panel" id="impPreview" style="max-height:240px;overflow:auto;display:none;margin:10px 0;"></pre>' +
+      '<div class="form-field">' +
+      '<label>直接粘贴 JSON（可选）</label>' +
+      '<textarea class="textarea" id="impText" style="min-height:160px" placeholder="粘贴 JSON 数组，例如：[{...},{...}]"></textarea>' +
+      '<div class="admin-action-bar admin-action-bar--tight">' +
+      '<button class="btn" type="button" id="impParse">解析并预览</button>' +
+      '<button class="btn" type="button" id="impClearText">清空</button>' +
+      "</div>" +
+      "</div>" +
       '<div class="admin-action-bar admin-action-bar--tight">' +
       '<button class="btn btn-ghost" type="button" id="dlImpTpl">下载模板（按当前字段）</button>' +
       '<input type="file" id="impFile" accept="application/json,.json" />' +
@@ -1036,6 +1044,42 @@
     refreshSampleOptions();
 
     var pending = null;
+
+    function setPending(arr) {
+      pending = arr;
+      AppUtils.$("#impPreview").style.display = "block";
+      AppUtils.$("#impPreview").textContent = JSON.stringify(arr, null, 2).slice(0, 8000);
+      AppUtils.$("#impDo").disabled = !arr || !arr.length;
+    }
+
+    AppUtils.$("#impParse").addEventListener("click", function () {
+      try {
+        var raw = String(AppUtils.$("#impText").value || "").trim();
+        if (!raw) {
+          pending = null;
+          AppUtils.$("#impDo").disabled = true;
+          AppUtils.toast("请先粘贴 JSON 内容", "error");
+          return;
+        }
+        var arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) throw new Error("JSON 根必须是数组");
+        setPending(arr);
+        AppUtils.toast("已解析 JSON：共 " + arr.length + " 条");
+      } catch (e) {
+        pending = null;
+        AppUtils.$("#impDo").disabled = true;
+        AppUtils.toast(e.message || String(e), "error");
+      }
+    });
+
+    AppUtils.$("#impClearText").addEventListener("click", function () {
+      AppUtils.$("#impText").value = "";
+      pending = null;
+      AppUtils.$("#impDo").disabled = true;
+      AppUtils.$("#impPreview").style.display = "none";
+      AppUtils.$("#impPreview").textContent = "";
+    });
+
     AppUtils.$("#impFile").addEventListener("change", function () {
       var f = AppUtils.$("#impFile").files[0];
       if (!f) return;
@@ -1044,10 +1088,7 @@
         try {
           var arr = JSON.parse(String(reader.result || "[]"));
           if (!Array.isArray(arr)) throw new Error("JSON 根必须是数组");
-          pending = arr;
-          AppUtils.$("#impPreview").style.display = "block";
-          AppUtils.$("#impPreview").textContent = JSON.stringify(arr, null, 2).slice(0, 8000);
-          AppUtils.$("#impDo").disabled = false;
+          setPending(arr);
         } catch (e) {
           pending = null;
           AppUtils.$("#impDo").disabled = true;
