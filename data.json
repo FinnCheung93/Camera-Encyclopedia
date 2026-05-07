@@ -71,7 +71,7 @@
           "fieldName": "定焦",
           "fieldType": "select",
           "required": true,
-          "isFilter": false,
+          "isFilter": true,
           "isTag": true,
           "options": [
             "定焦",
@@ -92,7 +92,7 @@
           "fieldName": "焦段",
           "fieldType": "text",
           "required": true,
-          "isFilter": false,
+          "isFilter": true,
           "isTag": false
         },
         {
