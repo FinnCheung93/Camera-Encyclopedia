@@ -875,11 +875,68 @@
       "</div>" +
       '<pre class="panel" id="impPreview" style="max-height:240px;overflow:auto;display:none;margin:10px 0;"></pre>' +
       '<div class="admin-action-bar admin-action-bar--tight">' +
-      '<a class="btn btn-ghost" href="templates/import-template.json" download>下载模板</a>' +
+      '<button class="btn btn-ghost" type="button" id="dlImpTpl">下载模板（按当前字段）</button>' +
       '<input type="file" id="impFile" accept="application/json,.json" />' +
       '<span class="admin-action-bar__spacer" aria-hidden="true"></span>' +
       '<button class="btn btn-primary" type="button" id="impDo" disabled>确认导入</button>' +
       "</div>";
+
+    function currentCat() {
+      var id = AppUtils.$("#impCat").value;
+      return DB.categoryConfig.find(function (x) {
+        return x.categoryId === id;
+      });
+    }
+
+    function buildImportTemplateItem(cat) {
+      var item = { specs: {} };
+      (cat.fieldConfig || []).forEach(function (f) {
+        var fid = f.fieldId;
+        if (!fid) return;
+        if (fid === "brand") return; // 品牌由上方输入框指定
+
+        var sample = f.fieldType === "number" ? 0 : "";
+        if (fid === "year") sample = 1998;
+        if (f.fieldType === "select") {
+          var opts = f.options || [];
+          sample = opts.length ? String(opts[0]) : "";
+        } else if (f.fieldType === "textarea") {
+          sample = f.fieldName ? String(f.fieldName) : "";
+        } else if (f.fieldType === "text") {
+          sample = f.fieldName ? String(f.fieldName) : "";
+        }
+
+        if (AppUtils.ROOT_FIELD_IDS[fid]) item[fid] = sample;
+        else item.specs[fid] = sample;
+      });
+      if (!item.specs || !Object.keys(item.specs).length) delete item.specs;
+      return item;
+    }
+
+    function downloadJson(filename, obj) {
+      var text = JSON.stringify(obj, null, 2);
+      var blob = new Blob([text], { type: "application/json;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () {
+        try {
+          URL.revokeObjectURL(a.href);
+        } catch (e) {}
+      }, 2000);
+    }
+
+    AppUtils.$("#dlImpTpl").addEventListener("click", function () {
+      var cat = currentCat();
+      if (!cat) return;
+      var item = buildImportTemplateItem(cat);
+      var filename = "import-template-" + String(cat.categoryId || "category") + ".json";
+      downloadJson(filename, [item]);
+      AppUtils.toast("已下载 " + filename);
+    });
 
     var pending = null;
     AppUtils.$("#impFile").addEventListener("change", function () {
