@@ -39,8 +39,8 @@
           "fieldName": "系列",
           "fieldType": "text",
           "required": false,
-          "isFilter": false,
-          "isTag": false
+          "isFilter": true,
+          "isTag": true
         },
         {
           "fieldId": "model",
